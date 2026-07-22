@@ -12,7 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WholesaleRouteImport } from './routes/wholesale'
 import { Route as StockRouteImport } from './routes/stock'
 import { Route as StaffRouteImport } from './routes/staff'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RetailRouteImport } from './routes/retail'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as ExpensesRouteImport } from './routes/expenses'
 import { Route as IndexRouteImport } from './routes/index'
 
 const WholesaleRoute = WholesaleRouteImport.update({
@@ -30,9 +34,29 @@ const StaffRoute = StaffRouteImport.update({
   path: '/staff',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RetailRoute = RetailRouteImport.update({
   id: '/retail',
   path: '/retail',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpensesRoute = ExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,14 +67,22 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/expenses': typeof ExpensesRoute
+  '/reports': typeof ReportsRoute
   '/retail': typeof RetailRoute
+  '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
   '/stock': typeof StockRoute
   '/wholesale': typeof WholesaleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/expenses': typeof ExpensesRoute
+  '/reports': typeof ReportsRoute
   '/retail': typeof RetailRoute
+  '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
   '/stock': typeof StockRoute
   '/wholesale': typeof WholesaleRoute
@@ -58,22 +90,58 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/expenses': typeof ExpensesRoute
+  '/reports': typeof ReportsRoute
   '/retail': typeof RetailRoute
+  '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/staff': typeof StaffRoute
   '/stock': typeof StockRoute
   '/wholesale': typeof WholesaleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/retail' | '/staff' | '/stock' | '/wholesale'
+  fullPaths:
+    | '/'
+    | '/expenses'
+    | '/reports'
+    | '/retail'
+    | '/settings'
+    | '/sitemap.xml'
+    | '/staff'
+    | '/stock'
+    | '/wholesale'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/retail' | '/staff' | '/stock' | '/wholesale'
-  id: '__root__' | '/' | '/retail' | '/staff' | '/stock' | '/wholesale'
+  to:
+    | '/'
+    | '/expenses'
+    | '/reports'
+    | '/retail'
+    | '/settings'
+    | '/sitemap.xml'
+    | '/staff'
+    | '/stock'
+    | '/wholesale'
+  id:
+    | '__root__'
+    | '/'
+    | '/expenses'
+    | '/reports'
+    | '/retail'
+    | '/settings'
+    | '/sitemap.xml'
+    | '/staff'
+    | '/stock'
+    | '/wholesale'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ExpensesRoute: typeof ExpensesRoute
+  ReportsRoute: typeof ReportsRoute
   RetailRoute: typeof RetailRoute
+  SettingsRoute: typeof SettingsRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StaffRoute: typeof StaffRoute
   StockRoute: typeof StockRoute
   WholesaleRoute: typeof WholesaleRoute
@@ -102,11 +170,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/retail': {
       id: '/retail'
       path: '/retail'
       fullPath: '/retail'
       preLoaderRoute: typeof RetailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expenses': {
+      id: '/expenses'
+      path: '/expenses'
+      fullPath: '/expenses'
+      preLoaderRoute: typeof ExpensesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -121,7 +217,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ExpensesRoute: ExpensesRoute,
+  ReportsRoute: ReportsRoute,
   RetailRoute: RetailRoute,
+  SettingsRoute: SettingsRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   StaffRoute: StaffRoute,
   StockRoute: StockRoute,
   WholesaleRoute: WholesaleRoute,
@@ -129,3 +229,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
