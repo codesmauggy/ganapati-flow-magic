@@ -1,24 +1,211 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { AppShell, CategoryChip, StatusPill } from "@/components/app-shell";
+import {
+  bookings,
+  dashboardKpis,
+  formatCurrency,
+  lowStockModels,
+} from "@/lib/mock-data";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "Dashboard · Manish Kala Kendra ERP" },
+      {
+        name: "description",
+        content:
+          "Live overview of stock, wholesale, retail, collections and net profit for the current Ganapati season.",
+      },
+    ],
+  }),
+  component: Dashboard,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function Dashboard() {
+  const k = dashboardKpis();
+  const low = lowStockModels();
+
+  const kpis = [
+    { label: "Total Stock", value: `${k.totalStock.toLocaleString("en-IN")}`, unit: "units", delta: "+12%", deltaLabel: "vs last month" },
+    { label: "Active Models", value: `${k.totalModels}`, unit: "SKUs", meta: `${low.length} low stock` },
+    { label: "Wholesale Business", value: formatCurrency(k.wholesaleValue), meta: `${bookings.filter(b=>b.channel==="Wholesale").length} orders` },
+    { label: "Retail Business", value: formatCurrency(k.retailValue), meta: `${bookings.filter(b=>b.channel==="Retail").length} bookings` },
+    { label: "Total Collection", value: formatCurrency(k.collection), meta: "Advance + partial" },
+    { label: "Pending Amount", value: formatCurrency(k.pending), meta: "Across all orders", accent: true },
+    { label: "Expenses (MTD)", value: formatCurrency(k.expenses), meta: "Colour + other" },
+    { label: "Staff Payments Due", value: formatCurrency(k.staffPayments), meta: "Piece-rate ledger" },
+  ];
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <AppShell title="Operational Overview" subtitle="Ganapati Season 2026 · Pune Workshop">
+      {/* KPI Grid */}
+      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+        {kpis.map((tile) => (
+          <div
+            key={tile.label}
+            className="rounded-xl border border-border bg-surface p-5 shadow-[var(--shadow-tile)]"
+          >
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              {tile.label}
+            </p>
+            <h3 className={`mt-1 font-display text-2xl ${tile.accent ? "text-secondary" : "text-foreground"}`}>
+              {tile.value}
+              {tile.unit && (
+                <span className="ml-1 font-sans text-xs text-muted-foreground">
+                  {tile.unit}
+                </span>
+              )}
+            </h3>
+            {tile.delta ? (
+              <div className="mt-3 flex items-center gap-2">
+                <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                  {tile.delta}
+                </span>
+                <span className="text-[10px] text-muted-foreground">{tile.deltaLabel}</span>
+              </div>
+            ) : (
+              <p className="mt-3 text-[10px] text-muted-foreground">{tile.meta}</p>
+            )}
+          </div>
+        ))}
+
+        {/* Net profit hero tile spans full width on md */}
+        <div className="col-span-2 rounded-xl bg-secondary p-5 text-white shadow-[var(--shadow-accent)] md:col-span-4">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">
+                Net Profit (Season to date)
+              </p>
+              <h3 className="mt-1 font-display text-4xl">{formatCurrency(k.netProfit)}</h3>
+            </div>
+            <div className="text-right text-xs text-white/80">
+              <p>Revenue: {formatCurrency(k.wholesaleValue + k.retailValue)}</p>
+              <p>Cost + Salary: {formatCurrency(k.expenses + k.staffPayments)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bookings + Sidebar */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-tile)] lg:col-span-2">
+          <div className="flex items-center justify-between border-b border-border px-6 py-4">
+            <h3 className="font-display text-lg">Recent Bookings</h3>
+            <Link
+              to="/wholesale"
+              className="rounded-lg border border-primary/30 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/5"
+            >
+              View all orders
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-muted/40 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                <tr>
+                  <th className="px-6 py-3">Booking</th>
+                  <th className="px-6 py-3">Customer / Village</th>
+                  <th className="px-6 py-3">Model</th>
+                  <th className="px-6 py-3 text-right">Amount</th>
+                  <th className="px-6 py-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border text-sm">
+                {bookings.slice(0, 5).map((b) => (
+                  <tr key={b.id} className="transition-colors hover:bg-muted/30">
+                    <td className="px-6 py-4">
+                      <p className="font-mono text-xs text-muted-foreground">{b.id}</p>
+                      <p className="text-[10px] text-muted-foreground">{b.channel}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="font-semibold">{b.customer}</p>
+                      <p className="text-[10px] text-muted-foreground">{b.village}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-xs font-medium">{b.modelName}</p>
+                      <p className="text-[10px] text-muted-foreground">Qty {b.qty} · {b.collector}</p>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <p className="font-semibold">{formatCurrency(b.amount)}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        Adv {formatCurrency(b.advance)}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <StatusPill status={b.status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <section className="rounded-xl border border-border bg-surface p-5 shadow-[var(--shadow-tile)]">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                Low Stock Alerts
+              </h3>
+              <Link to="/stock" className="text-[10px] font-semibold text-primary">
+                Manage
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {low.map((m) => (
+                <div key={m.id} className="flex items-center gap-3 rounded-lg border border-border p-3">
+                  <img
+                    src={m.photo}
+                    alt={m.name}
+                    width={40}
+                    height={40}
+                    loading="lazy"
+                    className="h-10 w-10 rounded-md object-cover outline-1 -outline-offset-1 outline-black/5"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{m.name}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      SKU {m.sku} · <CategoryChip category={m.category} />
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-display text-lg text-secondary">{m.available}</p>
+                    <p className="text-[10px] text-muted-foreground">left</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-xl border border-border bg-surface p-5 shadow-[var(--shadow-tile)]">
+            <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              Tempo Loading
+            </h3>
+            <ul className="space-y-4 text-sm">
+              <li className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold">MH-12-AB-4521</p>
+                  <p className="text-[11px] text-muted-foreground">Pune Hub · 45 items</p>
+                </div>
+                <StatusPill status="Loading" />
+              </li>
+              <li className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold">MH-14-GH-8890</p>
+                  <p className="text-[11px] text-muted-foreground">Satara Retail · 12 items</p>
+                </div>
+                <StatusPill status="Delivered" />
+              </li>
+              <li className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold">MH-12-AZ-4421</p>
+                  <p className="text-[11px] text-muted-foreground">Nashik · 32 items</p>
+                </div>
+                <StatusPill status="Dispatched" />
+              </li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </AppShell>
   );
 }
