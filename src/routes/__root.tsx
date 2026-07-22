@@ -75,25 +75,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Manish Kala Kendra ERP — Ganapati Manufacturing" },
+      { title: "Dashboard · Manish Kala Kendra ERP" },
       {
         name: "description",
         content:
-          "Manufacturing ERP for Manish Kala Kendra (since 1989) — stock, wholesale, retail, staff, salary and reports for Ganapati idol production.",
+          "Live overview of stock, wholesale, retail, collections and net profit for the current Ganapati season.",
       },
       { name: "author", content: "Manish Kala Kendra" },
-      { property: "og:title", content: "Manish Kala Kendra ERP" },
+      { property: "og:title", content: "Dashboard · Manish Kala Kendra ERP" },
       {
         property: "og:description",
         content:
-          "Workshop-grade ERP for Ganapati idol manufacturing: stock, orders, tempo loading, retail bookings, and staff.",
+          "Live overview of stock, wholesale, retail, collections and net profit for the current Ganapati season.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Dashboard · Manish Kala Kendra ERP" },
+      { name: "twitter:description", content: "Live overview of stock, wholesale, retail, collections and net profit for the current Ganapati season." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7e114dad-cd7c-4393-9a8c-a16c530d79ec/id-preview-848fbd36--8c50d37f-cbdb-437f-a3c1-c380a19e9f46.lovable.app-1784746726007.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7e114dad-cd7c-4393-9a8c-a16c530d79ec/id-preview-848fbd36--8c50d37f-cbdb-437f-a3c1-c380a19e9f46.lovable.app-1784746726007.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
