@@ -13,6 +13,8 @@ export const Route = createFileRoute("/stock")({
         content:
           "Ganapati, Gauri and Devi models with photos, live stock, purchase and selling prices, and low-stock alerts.",
       },
+      { property: "og:title", content: "Stock Inventory · Manish Kala Kendra ERP" },
+      { property: "og:description", content: "Ganapati, Gauri and Devi models with photos, live stock, purchase and selling prices, and low-stock alerts." },
     ],
   }),
   component: StockPage,

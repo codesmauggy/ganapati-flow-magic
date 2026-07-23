@@ -60,9 +60,9 @@ export function AppShell({
     <>
       <div className="flex items-center justify-between border-b border-border p-4 sm:p-6">
         <div className="min-w-0">
-          <h1 className="truncate font-display text-lg tracking-tight text-secondary sm:text-xl">
+          <div className="truncate font-display text-lg tracking-tight text-secondary sm:text-xl">
             Manish Kala Kendra
-          </h1>
+          </div>
           <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-primary">
             Manufacturing ERP · Since 1989
           </p>
@@ -159,9 +159,9 @@ export function AppShell({
               <Menu className="h-5 w-5" />
             </button>
             <div className="min-w-0 flex-1">
-              <h2 className="truncate font-display text-base leading-tight sm:text-lg">
+              <h1 className="truncate font-display text-base leading-tight sm:text-lg">
                 {title}
-              </h2>
+              </h1>
               {subtitle ? (
                 <p className="truncate text-[11px] text-muted-foreground sm:text-xs">
                   {subtitle}

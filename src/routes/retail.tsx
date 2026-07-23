@@ -12,6 +12,8 @@ export const Route = createFileRoute("/retail")({
         content:
           "Quick retail booking, advance payments, and collector-assigned invoices for walk-in customers.",
       },
+      { property: "og:title", content: "Retail Counter · Manish Kala Kendra ERP" },
+      { property: "og:description", content: "Quick retail booking, advance payments, and collector-assigned invoices for walk-in customers." },
     ],
   }),
   component: RetailPage,

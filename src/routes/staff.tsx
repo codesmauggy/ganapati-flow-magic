@@ -11,6 +11,8 @@ export const Route = createFileRoute("/staff")({
         content:
           "Workshop staff, attendance, piece-rate production and salary ledger with carry-forward.",
       },
+      { property: "og:title", content: "Staff & Salary · Manish Kala Kendra ERP" },
+      { property: "og:description", content: "Workshop staff, attendance, piece-rate production and salary ledger with carry-forward." },
     ],
   }),
   component: StaffPage,

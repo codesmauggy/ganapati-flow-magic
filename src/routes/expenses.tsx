@@ -11,6 +11,8 @@ export const Route = createFileRoute("/expenses")({
         content:
           "Track colour, raw material and other workshop expenses by month, category and person.",
       },
+      { property: "og:title", content: "Expenses · Manish Kala Kendra ERP" },
+      { property: "og:description", content: "Track colour, raw material and other workshop expenses by month, category and person." },
     ],
   }),
   component: ExpensesPage,
