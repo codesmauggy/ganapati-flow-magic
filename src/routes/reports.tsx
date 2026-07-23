@@ -11,6 +11,8 @@ export const Route = createFileRoute("/reports")({
         content:
           "Business, financial, inventory, collector and sales reports for the Ganapati season.",
       },
+      { property: "og:title", content: "Reports · Manish Kala Kendra ERP" },
+      { property: "og:description", content: "Business, financial, inventory, collector and sales reports for the Ganapati season." },
     ],
   }),
   component: ReportsPage,

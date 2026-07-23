@@ -5,7 +5,9 @@ export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
       { title: "Settings · Manish Kala Kendra ERP" },
-      { name: "description", content: "Company, users and configurable master data." },
+      { name: "description", content: "Configure company details, collectors, categories and payment modes — the master data that powers every module of the workshop ERP." },
+      { property: "og:title", content: "Settings · Manish Kala Kendra ERP" },
+      { property: "og:description", content: "Configure company details, collectors, categories and payment modes — the master data that powers every module of the workshop ERP." },
     ],
   }),
   component: SettingsPage,

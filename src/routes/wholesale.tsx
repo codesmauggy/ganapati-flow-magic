@@ -12,6 +12,8 @@ export const Route = createFileRoute("/wholesale")({
         content:
           "Wholesale customer master, tempo loading, invoices, ledger and collection tracking.",
       },
+      { property: "og:title", content: "Wholesale Orders · Manish Kala Kendra ERP" },
+      { property: "og:description", content: "Wholesale customer master, tempo loading, invoices, ledger and collection tracking." },
     ],
   }),
   component: WholesalePage,
