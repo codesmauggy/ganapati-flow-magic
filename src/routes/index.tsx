@@ -87,7 +87,7 @@ function Dashboard() {
       </div>
 
       {/* Bookings + Sidebar */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3 lg:gap-8">
         <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-tile)] lg:col-span-2">
           <div className="flex items-center justify-between border-b border-border px-6 py-4">
             <h3 className="font-display text-lg">Recent Bookings</h3>
