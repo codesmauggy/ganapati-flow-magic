@@ -104,6 +104,34 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Marcellus&display=swap",
       },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "Manish Kala Kendra",
+              url: "https://ganapati-flow-magic.lovable.app",
+              foundingDate: "1989",
+              description: "Manufacturer of Ganapati, Gauri and Devi idols based in Pune, Maharashtra.",
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: "Pune",
+                addressRegion: "Maharashtra",
+                addressCountry: "IN",
+              },
+            },
+            {
+              "@type": "WebSite",
+              name: "Manish Kala Kendra ERP",
+              url: "https://ganapati-flow-magic.lovable.app",
+            },
+          ],
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,

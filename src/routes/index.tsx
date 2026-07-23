@@ -16,6 +16,8 @@ export const Route = createFileRoute("/")({
         content:
           "Live overview of stock, wholesale, retail, collections and net profit for the current Ganapati season.",
       },
+      { property: "og:title", content: "Dashboard · Manish Kala Kendra ERP" },
+      { property: "og:description", content: "Live overview of stock, wholesale, retail, collections and net profit for the current Ganapati season." },
     ],
   }),
   component: Dashboard,
