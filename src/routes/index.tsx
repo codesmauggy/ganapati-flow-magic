@@ -39,16 +39,16 @@ function Dashboard() {
   return (
     <AppShell title="Operational Overview" subtitle="Ganapati Season 2026 · Pune Workshop">
       {/* KPI Grid */}
-      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 md:mb-8 md:grid-cols-3 xl:grid-cols-4">
         {kpis.map((tile) => (
           <div
             key={tile.label}
-            className="rounded-xl border border-border bg-surface p-5 shadow-[var(--shadow-tile)]"
+            className="rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-tile)] sm:p-5"
           >
-            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground sm:text-[11px]">
               {tile.label}
             </p>
-            <h3 className={`mt-1 font-display text-2xl ${tile.accent ? "text-secondary" : "text-foreground"}`}>
+            <h3 className={`mt-1 font-display text-xl sm:text-2xl ${tile.accent ? "text-secondary" : "text-foreground"}`}>
               {tile.value}
               {tile.unit && (
                 <span className="ml-1 font-sans text-xs text-muted-foreground">
@@ -57,7 +57,7 @@ function Dashboard() {
               )}
             </h3>
             {tile.delta ? (
-              <div className="mt-3 flex items-center gap-2">
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">
                   {tile.delta}
                 </span>
@@ -69,16 +69,16 @@ function Dashboard() {
           </div>
         ))}
 
-        {/* Net profit hero tile spans full width on md */}
-        <div className="col-span-2 rounded-xl bg-secondary p-5 text-white shadow-[var(--shadow-accent)] md:col-span-4">
+        {/* Net profit hero tile spans full width */}
+        <div className="col-span-2 rounded-xl bg-secondary p-4 text-white shadow-[var(--shadow-accent)] sm:p-5 md:col-span-3 xl:col-span-4">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
+            <div className="min-w-0">
               <p className="text-[11px] font-bold uppercase tracking-wider text-white/70">
                 Net Profit (Season to date)
               </p>
-              <h3 className="mt-1 font-display text-4xl">{formatCurrency(k.netProfit)}</h3>
+              <h3 className="mt-1 font-display text-3xl sm:text-4xl">{formatCurrency(k.netProfit)}</h3>
             </div>
-            <div className="text-right text-xs text-white/80">
+            <div className="text-right text-[11px] text-white/80 sm:text-xs">
               <p>Revenue: {formatCurrency(k.wholesaleValue + k.retailValue)}</p>
               <p>Cost + Salary: {formatCurrency(k.expenses + k.staffPayments)}</p>
             </div>
@@ -87,7 +87,7 @@ function Dashboard() {
       </div>
 
       {/* Bookings + Sidebar */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3 lg:gap-8">
         <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-tile)] lg:col-span-2">
           <div className="flex items-center justify-between border-b border-border px-6 py-4">
             <h3 className="font-display text-lg">Recent Bookings</h3>
