@@ -1,5 +1,6 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   Package,
@@ -12,8 +13,10 @@ import {
   Search,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
-import { lowStockModels } from "@/lib/mock-data";
+import { modelsQuery } from "@/lib/api/queries";
+import { useAuth } from "@/lib/auth";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -37,15 +40,21 @@ export function AppShell({
   actions?: ReactNode;
 }) {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const lowCount = lowStockModels().length;
+  const { user, loading, logout } = useAuth();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  // Close drawer on route change
+  // Auth gate: send unauthenticated users to /login (client-side)
+  useEffect(() => {
+    if (!loading && !user) {
+      void navigate({ to: "/login", replace: true });
+    }
+  }, [loading, user, navigate]);
+
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
 
-  // Lock body scroll when drawer open
   useEffect(() => {
     if (open) {
       const prev = document.body.style.overflow;
@@ -55,6 +64,25 @@ export function AppShell({
       };
     }
   }, [open]);
+
+  // Live low-stock count for the sidebar alert (falls back to 0 while loading)
+  const { data: models } = useQuery({ ...modelsQuery, enabled: !!user });
+  const lowCount = (models ?? []).filter((m) => m.available < m.lowStockAt).length;
+
+  if (loading || !user) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
+
+  const initials = (user.fullName || user.username)
+    .split(" ")
+    .map((s) => s[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   const sidebar = (
     <>
@@ -80,9 +108,7 @@ export function AppShell({
       <nav className="flex-1 space-y-1 overflow-y-auto p-3 sm:p-4">
         {nav.map((item) => {
           const active =
-            item.to === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.to);
+            item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
           const Icon = item.icon;
           return (
             <Link
@@ -102,15 +128,17 @@ export function AppShell({
       </nav>
 
       <div className="space-y-3 border-t border-border p-3 sm:p-4">
-        <Link
-          to="/stock"
-          className="block rounded-lg bg-secondary/5 p-3 transition-colors hover:bg-secondary/10"
-        >
-          <p className="text-xs font-semibold text-secondary">System Alert</p>
-          <p className="mt-1 text-[11px] text-secondary/70">
-            {lowCount} items below safety stock level.
-          </p>
-        </Link>
+        {lowCount > 0 && (
+          <Link
+            to="/stock"
+            className="block rounded-lg bg-secondary/5 p-3 transition-colors hover:bg-secondary/10"
+          >
+            <p className="text-xs font-semibold text-secondary">System Alert</p>
+            <p className="mt-1 text-[11px] text-secondary/70">
+              {lowCount} items below safety stock level.
+            </p>
+          </Link>
+        )}
         <Link
           to="/settings"
           className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted"
@@ -118,18 +146,27 @@ export function AppShell({
           <Settings className="h-4 w-4 shrink-0" />
           Settings
         </Link>
+        <button
+          type="button"
+          onClick={() => {
+            logout();
+            void navigate({ to: "/login", replace: true });
+          }}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          Sign out
+        </button>
       </div>
     </>
   );
 
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
-      {/* Desktop sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-surface lg:flex">
         {sidebar}
       </aside>
 
-      {/* Mobile drawer */}
       {open && (
         <div
           className="fixed inset-0 z-40 bg-black/40 lg:hidden"
@@ -146,7 +183,6 @@ export function AppShell({
         {sidebar}
       </aside>
 
-      {/* Main */}
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-border bg-surface px-3 sm:h-16 sm:px-4 lg:px-8">
           <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-6">
@@ -180,13 +216,13 @@ export function AppShell({
           <div className="flex shrink-0 items-center gap-2 sm:gap-4">
             {actions}
             <div className="hidden text-right md:block">
-              <p className="text-xs font-bold">Manish K. Salunke</p>
-              <p className="text-[10px] text-muted-foreground">
-                Administrator · Collector on duty
+              <p className="text-xs font-bold">{user.fullName || user.username}</p>
+              <p className="text-[10px] text-muted-foreground capitalize">
+                {user.role} · Collector on duty
               </p>
             </div>
             <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15 text-xs font-bold text-primary">
-              MS
+              {initials || "US"}
             </div>
           </div>
         </header>
@@ -234,4 +270,44 @@ export function StatusPill({ status }: { status: string }) {
       {status}
     </span>
   );
+}
+
+// Small helpers shared across pages
+export function AsyncState({
+  isLoading,
+  isError,
+  error,
+  empty,
+  emptyLabel,
+  children,
+}: {
+  isLoading: boolean;
+  isError: boolean;
+  error?: unknown;
+  empty?: boolean;
+  emptyLabel?: string;
+  children: ReactNode;
+}) {
+  if (isLoading) {
+    return <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>;
+  }
+  if (isError) {
+    const msg = error instanceof Error ? error.message : "Something went wrong.";
+    return (
+      <div className="p-8 text-center text-sm text-rose-700">
+        {msg}
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Ensure the Django backend at <code>VITE_API_BASE_URL</code> is running and reachable.
+        </p>
+      </div>
+    );
+  }
+  if (empty) {
+    return (
+      <div className="p-8 text-center text-sm text-muted-foreground">
+        {emptyLabel ?? "No records yet."}
+      </div>
+    );
+  }
+  return <>{children}</>;
 }
