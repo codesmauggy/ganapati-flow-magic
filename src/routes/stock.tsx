@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Plus, Search } from "lucide-react";
-import { AppShell, CategoryChip } from "@/components/app-shell";
-import { formatCurrency, models, type Category } from "@/lib/mock-data";
+import { AppShell, AsyncState, CategoryChip } from "@/components/app-shell";
+import { modelsQuery } from "@/lib/api/queries";
+import { formatCurrency, type Category } from "@/lib/types";
 
 export const Route = createFileRoute("/stock")({
   head: () => ({
@@ -25,18 +27,17 @@ const categories: (Category | "All")[] = ["All", "Ganapati", "Gauri", "Devi"];
 function StockPage() {
   const [category, setCategory] = useState<Category | "All">("All");
   const [query, setQuery] = useState("");
+  const q = useQuery(modelsQuery);
+  const models = q.data ?? [];
 
   const filtered = useMemo(() => {
     return models.filter((m) => {
       const catOk = category === "All" || m.category === category;
-      const q = query.trim().toLowerCase();
-      const qOk =
-        !q ||
-        m.name.toLowerCase().includes(q) ||
-        m.sku.toLowerCase().includes(q);
+      const s = query.trim().toLowerCase();
+      const qOk = !s || m.name.toLowerCase().includes(s) || m.sku.toLowerCase().includes(s);
       return catOk && qOk;
     });
-  }, [category, query]);
+  }, [category, query, models]);
 
   const totals = useMemo(
     () => ({
@@ -58,14 +59,12 @@ function StockPage() {
         </button>
       }
     >
-      {/* Summary */}
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
         <SummaryTile label="Total Available Units" value={totals.count.toLocaleString("en-IN")} />
         <SummaryTile label="Current Stock Value" value={formatCurrency(totals.value)} />
         <SummaryTile label="Raw Material Value" value={formatCurrency(totals.raw)} />
       </div>
 
-      {/* Filters */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-1 rounded-lg border border-border bg-surface p-1">
           {categories.map((c) => (
@@ -94,74 +93,71 @@ function StockPage() {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-tile)]">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-muted/40 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-              <tr>
-                <th className="px-6 py-3">Model</th>
-                <th className="px-6 py-3">Category</th>
-                <th className="px-6 py-3">Size</th>
-                <th className="px-6 py-3 text-right">Purchase</th>
-                <th className="px-6 py-3 text-right">Selling</th>
-                <th className="px-6 py-3 text-right">Available</th>
-                <th className="px-6 py-3 text-right">Stock Value</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border text-sm">
-              {filtered.map((m) => {
-                const low = m.available < m.lowStockAt;
-                return (
-                  <tr key={m.id} className="transition-colors hover:bg-muted/30">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={m.photo}
-                          alt={m.name}
-                          width={44}
-                          height={44}
-                          loading="lazy"
-                          className="h-11 w-11 rounded-md object-cover outline-1 -outline-offset-1 outline-black/5"
-                        />
-                        <div>
-                          <p className="font-semibold">{m.name}</p>
-                          <p className="text-[10px] text-muted-foreground">SKU: {m.sku}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <CategoryChip category={m.category} />
-                    </td>
-                    <td className="px-6 py-4 text-xs text-muted-foreground">{m.size}</td>
-                    <td className="px-6 py-4 text-right text-xs text-muted-foreground">
-                      {formatCurrency(m.purchasePrice)}
-                    </td>
-                    <td className="px-6 py-4 text-right font-semibold">
-                      {formatCurrency(m.sellingPrice)}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <span className="font-medium">{m.available}</span>
-                      {low ? (
-                        <span className="ml-2 text-[10px] font-bold text-secondary">
-                          LOW
-                        </span>
-                      ) : null}
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono text-xs">
-                      {formatCurrency(m.available * m.sellingPrice)}
-                    </td>
-                  </tr>
-                );
-              })}
-              {filtered.length === 0 && (
+        <AsyncState
+          isLoading={q.isLoading}
+          isError={q.isError}
+          error={q.error}
+          empty={filtered.length === 0}
+          emptyLabel="No models match your filter."
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-muted/40 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-muted-foreground">
-                    No models match your filter.
-                  </td>
+                  <th className="px-6 py-3">Model</th>
+                  <th className="px-6 py-3">Category</th>
+                  <th className="px-6 py-3">Size</th>
+                  <th className="px-6 py-3 text-right">Purchase</th>
+                  <th className="px-6 py-3 text-right">Selling</th>
+                  <th className="px-6 py-3 text-right">Available</th>
+                  <th className="px-6 py-3 text-right">Stock Value</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-border text-sm">
+                {filtered.map((m) => {
+                  const low = m.available < m.lowStockAt;
+                  return (
+                    <tr key={m.id} className="transition-colors hover:bg-muted/30">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={m.photo}
+                            alt={m.name}
+                            width={44}
+                            height={44}
+                            loading="lazy"
+                            className="h-11 w-11 rounded-md object-cover outline-1 -outline-offset-1 outline-black/5"
+                          />
+                          <div>
+                            <p className="font-semibold">{m.name}</p>
+                            <p className="text-[10px] text-muted-foreground">SKU: {m.sku}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <CategoryChip category={m.category} />
+                      </td>
+                      <td className="px-6 py-4 text-xs text-muted-foreground">{m.size}</td>
+                      <td className="px-6 py-4 text-right text-xs text-muted-foreground">
+                        {formatCurrency(m.purchasePrice)}
+                      </td>
+                      <td className="px-6 py-4 text-right font-semibold">
+                        {formatCurrency(m.sellingPrice)}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <span className="font-medium">{m.available}</span>
+                        {low ? <span className="ml-2 text-[10px] font-bold text-secondary">LOW</span> : null}
+                      </td>
+                      <td className="px-6 py-4 text-right font-mono text-xs">
+                        {formatCurrency(m.available * m.sellingPrice)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </AsyncState>
       </div>
     </AppShell>
   );
@@ -170,9 +166,7 @@ function StockPage() {
 function SummaryTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-border bg-surface p-5 shadow-[var(--shadow-tile)]">
-      <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </p>
+      <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
       <p className="mt-1 font-display text-2xl">{value}</p>
     </div>
   );

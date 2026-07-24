@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { AppShell, StatusPill } from "@/components/app-shell";
-import { bookings, formatCurrency, models } from "@/lib/mock-data";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AppShell, AsyncState, StatusPill } from "@/components/app-shell";
+import { bookingsQuery, createBooking, modelsQuery, qk } from "@/lib/api/queries";
+import { formatCurrency } from "@/lib/types";
+import { useAuth } from "@/lib/auth";
+import { ApiError } from "@/lib/api-client";
 
 export const Route = createFileRoute("/retail")({
   head: () => ({
@@ -9,8 +13,7 @@ export const Route = createFileRoute("/retail")({
       { title: "Retail Counter · Manish Kala Kendra ERP" },
       {
         name: "description",
-        content:
-          "Quick retail booking, advance payments, and collector-assigned invoices for walk-in customers.",
+        content: "Quick retail booking, advance payments, and collector-assigned invoices for walk-in customers.",
       },
       { property: "og:title", content: "Retail Counter · Manish Kala Kendra ERP" },
       { property: "og:description", content: "Quick retail booking, advance payments, and collector-assigned invoices for walk-in customers." },
@@ -20,18 +23,53 @@ export const Route = createFileRoute("/retail")({
 });
 
 function RetailPage() {
-  const rows = bookings.filter((b) => b.channel === "Retail");
-  const [saved, setSaved] = useState<string | null>(null);
-  const [customer, setCustomer] = useState("");
+  const { user } = useAuth();
+  const bq = useQuery(bookingsQuery);
+  const mq = useQuery(modelsQuery);
+  const queryClient = useQueryClient();
+
+  const rows = (bq.data ?? []).filter((b) => b.channel === "Retail");
+  const models = mq.data ?? [];
 
   const total = rows.reduce((s, b) => s + b.amount, 0);
   const collected = rows.reduce((s, b) => s + b.advance, 0);
 
+  const [customer, setCustomer] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [village, setVillage] = useState("");
+  const [sku, setSku] = useState("");
+  const [qty, setQty] = useState(1);
+  const [advance, setAdvance] = useState(0);
+  const [pickup, setPickup] = useState("");
+  const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+
+  const create = useMutation({
+    mutationFn: createBooking,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.bookings });
+      queryClient.invalidateQueries({ queryKey: qk.models });
+      queryClient.invalidateQueries({ queryKey: qk.dashboard });
+      setMsg({ kind: "ok", text: `Booking created for ${customer}.` });
+      setCustomer("");
+      setMobile("");
+      setVillage("");
+      setQty(1);
+      setAdvance(0);
+      setPickup("");
+      setTimeout(() => setMsg(null), 3500);
+    },
+    onError: (err) => {
+      setMsg({
+        kind: "err",
+        text: err instanceof ApiError ? err.message : "Could not create the booking.",
+      });
+    },
+  });
+
+  const activeSku = sku || models[0]?.sku || "";
+
   return (
-    <AppShell
-      title="Retail Counter"
-      subtitle="Walk-in bookings · Collector auto-assigned from login"
-    >
+    <AppShell title="Retail Counter" subtitle="Walk-in bookings · Collector auto-assigned from login">
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
         <Tile label="Today's Bookings" value={String(rows.length)} />
         <Tile label="Retail Sales" value={formatCurrency(total)} />
@@ -43,49 +81,50 @@ function RetailPage() {
           <div className="border-b border-border px-6 py-4">
             <h3 className="font-display text-lg">Recent Retail Bookings</h3>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-muted/40 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                <tr>
-                  <th className="px-6 py-3">Booking</th>
-                  <th className="px-6 py-3">Customer</th>
-                  <th className="px-6 py-3">Model</th>
-                  <th className="px-6 py-3">Collector</th>
-                  <th className="px-6 py-3 text-right">Amount</th>
-                  <th className="px-6 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border text-sm">
-                {rows.map((b) => (
-                  <tr key={b.id} className="hover:bg-muted/30">
-                    <td className="px-6 py-4 font-mono text-xs text-muted-foreground">
-                      {b.id}
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="font-semibold">{b.customer}</p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {b.village} · {b.mobile}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4 text-xs">
-                      {b.modelName}{" "}
-                      <span className="text-muted-foreground">× {b.qty}</span>
-                    </td>
-                    <td className="px-6 py-4 text-xs font-medium">{b.collector}</td>
-                    <td className="px-6 py-4 text-right">
-                      <p className="font-semibold">{formatCurrency(b.amount)}</p>
-                      <p className="text-[10px] text-muted-foreground">
-                        Adv {formatCurrency(b.advance)}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <StatusPill status={b.status} />
-                    </td>
+          <AsyncState
+            isLoading={bq.isLoading}
+            isError={bq.isError}
+            error={bq.error}
+            empty={rows.length === 0}
+            emptyLabel="No retail bookings yet."
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-muted/40 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                  <tr>
+                    <th className="px-6 py-3">Booking</th>
+                    <th className="px-6 py-3">Customer</th>
+                    <th className="px-6 py-3">Model</th>
+                    <th className="px-6 py-3">Collector</th>
+                    <th className="px-6 py-3 text-right">Amount</th>
+                    <th className="px-6 py-3">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-border text-sm">
+                  {rows.map((b) => (
+                    <tr key={b.id} className="hover:bg-muted/30">
+                      <td className="px-6 py-4 font-mono text-xs text-muted-foreground">{b.id}</td>
+                      <td className="px-6 py-4">
+                        <p className="font-semibold">{b.customer}</p>
+                        <p className="text-[10px] text-muted-foreground">{b.village} · {b.mobile}</p>
+                      </td>
+                      <td className="px-6 py-4 text-xs">
+                        {b.modelName} <span className="text-muted-foreground">× {b.qty}</span>
+                      </td>
+                      <td className="px-6 py-4 text-xs font-medium">{b.collector}</td>
+                      <td className="px-6 py-4 text-right">
+                        <p className="font-semibold">{formatCurrency(b.amount)}</p>
+                        <p className="text-[10px] text-muted-foreground">Adv {formatCurrency(b.advance)}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <StatusPill status={b.status} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </AsyncState>
         </div>
 
         <div className="rounded-xl border border-border bg-surface p-6 shadow-[var(--shadow-tile)]">
@@ -94,10 +133,17 @@ function RetailPage() {
             className="space-y-4"
             onSubmit={(e) => {
               e.preventDefault();
-              if (!customer.trim()) return;
-              setSaved(`Booking created for ${customer}. Assigned to Manish.`);
-              setCustomer("");
-              setTimeout(() => setSaved(null), 3000);
+              if (!customer.trim() || !activeSku) return;
+              create.mutate({
+                customer: customer.trim(),
+                mobile: mobile.trim() || undefined,
+                village: village.trim() || undefined,
+                modelSku: activeSku,
+                qty,
+                advance: advance || undefined,
+                channel: "Retail",
+                pickupDate: pickup || undefined,
+              });
             }}
           >
             <Field label="Customer Name (required)">
@@ -111,14 +157,20 @@ function RetailPage() {
             </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Mobile">
-                <input className="input" placeholder="98XXXXXXXX" />
+                <input className="input" value={mobile} onChange={(e) => setMobile(e.target.value)} placeholder="98XXXXXXXX" />
               </Field>
               <Field label="Village">
-                <input className="input" placeholder="Optional" />
+                <input className="input" value={village} onChange={(e) => setVillage(e.target.value)} placeholder="Optional" />
               </Field>
             </div>
             <Field label="Model">
-              <select className="input" defaultValue={models[0].sku}>
+              <select
+                className="input"
+                value={activeSku}
+                onChange={(e) => setSku(e.target.value)}
+                disabled={models.length === 0}
+              >
+                {models.length === 0 && <option value="">Loading models…</option>}
                 {models.map((m) => (
                   <option key={m.sku} value={m.sku}>
                     {m.name} — {formatCurrency(m.sellingPrice)}
@@ -127,26 +179,47 @@ function RetailPage() {
               </select>
             </Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Advance">
-                <input type="number" className="input" placeholder="₹" />
+              <Field label="Qty">
+                <input
+                  type="number"
+                  min={1}
+                  className="input"
+                  value={qty}
+                  onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
+                />
               </Field>
-              <Field label="Pickup date">
-                <input type="date" className="input" />
+              <Field label="Advance">
+                <input
+                  type="number"
+                  min={0}
+                  className="input"
+                  value={advance || ""}
+                  onChange={(e) => setAdvance(Math.max(0, Number(e.target.value) || 0))}
+                  placeholder="₹"
+                />
               </Field>
             </div>
+            <Field label="Pickup date">
+              <input type="date" className="input" value={pickup} onChange={(e) => setPickup(e.target.value)} />
+            </Field>
             <div className="rounded-lg bg-muted/50 p-3 text-[11px] text-muted-foreground">
               <span className="font-semibold text-foreground">Collector:</span>{" "}
-              Manish K. Salunke (from login)
+              {user?.fullName || user?.username || "—"} (from login)
             </div>
             <button
               type="submit"
-              className="w-full rounded-lg bg-primary py-3 font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+              disabled={create.isPending || models.length === 0}
+              className="w-full rounded-lg bg-primary py-3 font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60"
             >
-              Confirm Booking
+              {create.isPending ? "Saving…" : "Confirm Booking"}
             </button>
-            {saved && (
-              <p className="rounded-md bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
-                {saved}
+            {msg && (
+              <p
+                className={`rounded-md px-3 py-2 text-xs font-medium ${
+                  msg.kind === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+                }`}
+              >
+                {msg.text}
               </p>
             )}
           </form>
@@ -183,23 +256,11 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Tile({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone?: "success";
-}) {
+function Tile({ label, value, tone }: { label: string; value: string; tone?: "success" }) {
   return (
     <div className="rounded-xl border border-border bg-surface p-5 shadow-[var(--shadow-tile)]">
-      <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </p>
-      <p
-        className={`mt-1 font-display text-2xl ${tone === "success" ? "text-emerald-700" : "text-foreground"}`}
-      >
+      <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className={`mt-1 font-display text-2xl ${tone === "success" ? "text-emerald-700" : "text-foreground"}`}>
         {value}
       </p>
     </div>
