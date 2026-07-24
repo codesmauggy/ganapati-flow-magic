@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppShell } from "@/components/app-shell";
-import { formatCurrency } from "@/lib/mock-data";
+import { useQuery } from "@tanstack/react-query";
+import { AppShell, AsyncState } from "@/components/app-shell";
+import { expensesQuery } from "@/lib/api/queries";
+import { formatCurrency } from "@/lib/types";
 
 export const Route = createFileRoute("/expenses")({
   head: () => ({
@@ -8,8 +10,7 @@ export const Route = createFileRoute("/expenses")({
       { title: "Expenses · Manish Kala Kendra ERP" },
       {
         name: "description",
-        content:
-          "Track colour, raw material and other workshop expenses by month, category and person.",
+        content: "Track colour, raw material and other workshop expenses by month, category and person.",
       },
       { property: "og:title", content: "Expenses · Manish Kala Kendra ERP" },
       { property: "og:description", content: "Track colour, raw material and other workshop expenses by month, category and person." },
@@ -18,16 +19,9 @@ export const Route = createFileRoute("/expenses")({
   component: ExpensesPage,
 });
 
-const rows = [
-  { date: "2026-07-18", category: "Colour", desc: "Golden paint 5L", amount: 8500, paidBy: "Manish" },
-  { date: "2026-07-17", category: "Raw Material", desc: "Plaster of Paris (25 bags)", amount: 22500, paidBy: "Rupesh" },
-  { date: "2026-07-16", category: "Transport", desc: "Tempo hire MH-12-AB-4521", amount: 4200, paidBy: "Eknath" },
-  { date: "2026-07-15", category: "Colour", desc: "Red enamel paint", amount: 3400, paidBy: "Manish" },
-  { date: "2026-07-14", category: "Utilities", desc: "Electricity bill (workshop)", amount: 12800, paidBy: "Manish" },
-  { date: "2026-07-12", category: "Other", desc: "Packaging boxes", amount: 6100, paidBy: "Rupesh" },
-];
-
 function ExpensesPage() {
+  const q = useQuery(expensesQuery);
+  const rows = q.data ?? [];
   const total = rows.reduce((s, r) => s + r.amount, 0);
   const byCategory = rows.reduce<Record<string, number>>((acc, r) => {
     acc[r.category] = (acc[r.category] ?? 0) + r.amount;
@@ -44,34 +38,40 @@ function ExpensesPage() {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-tile)]">
-        <table className="w-full text-left">
-          <thead className="bg-muted/40 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-            <tr>
-              <th className="px-6 py-3">Date</th>
-              <th className="px-6 py-3">Category</th>
-              <th className="px-6 py-3">Description</th>
-              <th className="px-6 py-3">Paid By</th>
-              <th className="px-6 py-3 text-right">Amount</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border text-sm">
-            {rows.map((r, i) => (
-              <tr key={i} className="hover:bg-muted/30">
-                <td className="px-6 py-4 text-xs text-muted-foreground">{r.date}</td>
-                <td className="px-6 py-4">
-                  <span className="rounded bg-accent px-2 py-0.5 text-[11px] font-medium text-accent-foreground">
-                    {r.category}
-                  </span>
-                </td>
-                <td className="px-6 py-4">{r.desc}</td>
-                <td className="px-6 py-4 text-xs">{r.paidBy}</td>
-                <td className="px-6 py-4 text-right font-semibold">
-                  {formatCurrency(r.amount)}
-                </td>
+        <AsyncState
+          isLoading={q.isLoading}
+          isError={q.isError}
+          error={q.error}
+          empty={rows.length === 0}
+          emptyLabel="No expenses recorded this month."
+        >
+          <table className="w-full text-left">
+            <thead className="bg-muted/40 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+              <tr>
+                <th className="px-6 py-3">Date</th>
+                <th className="px-6 py-3">Category</th>
+                <th className="px-6 py-3">Description</th>
+                <th className="px-6 py-3">Paid By</th>
+                <th className="px-6 py-3 text-right">Amount</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-border text-sm">
+              {rows.map((r) => (
+                <tr key={r.id} className="hover:bg-muted/30">
+                  <td className="px-6 py-4 text-xs text-muted-foreground">{r.date}</td>
+                  <td className="px-6 py-4">
+                    <span className="rounded bg-accent px-2 py-0.5 text-[11px] font-medium text-accent-foreground">
+                      {r.category}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">{r.description}</td>
+                  <td className="px-6 py-4 text-xs">{r.paidBy}</td>
+                  <td className="px-6 py-4 text-right font-semibold">{formatCurrency(r.amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </AsyncState>
       </div>
     </AppShell>
   );
