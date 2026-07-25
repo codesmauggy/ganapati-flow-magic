@@ -13,7 +13,7 @@ import { formatCurrency, formatDate, type CustomerTag } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
 import { ApiError } from "@/lib/api-client";
 
-export const Route = createFileRoute("/customers")({
+export const Route = createFileRoute("/customers/")({
   head: () => ({
     meta: [
       { title: "Customers · Manish Kala Kendra ERP" },
