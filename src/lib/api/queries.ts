@@ -60,6 +60,7 @@ export const dashboardQuery = queryOptions({
 
 export type CreateBookingInput = {
   customer: string;
+  customerId?: string; // link to an existing Customer record (preferred)
   mobile?: string;
   village?: string;
   modelSku: string;
