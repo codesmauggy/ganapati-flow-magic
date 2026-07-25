@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell, AsyncState, StatusPill } from "@/components/app-shell";
-import { bookingsQuery, createBooking, modelsQuery, qk } from "@/lib/api/queries";
+import { bookingsQuery, createBooking, customerKeys, customersQuery, modelsQuery, qk } from "@/lib/api/queries";
 import { formatCurrency } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
 import { ApiError } from "@/lib/api-client";
@@ -26,6 +26,7 @@ function RetailPage() {
   const { user } = useAuth();
   const bq = useQuery(bookingsQuery);
   const mq = useQuery(modelsQuery);
+  const cq = useQuery(customersQuery);
   const queryClient = useQueryClient();
 
   const rows = (bq.data ?? []).filter((b) => b.channel === "Retail");
@@ -34,6 +35,7 @@ function RetailPage() {
   const total = rows.reduce((s, b) => s + b.amount, 0);
   const collected = rows.reduce((s, b) => s + b.advance, 0);
 
+  const [customerId, setCustomerId] = useState("");
   const [customer, setCustomer] = useState("");
   const [mobile, setMobile] = useState("");
   const [village, setVillage] = useState("");
@@ -49,7 +51,9 @@ function RetailPage() {
       queryClient.invalidateQueries({ queryKey: qk.bookings });
       queryClient.invalidateQueries({ queryKey: qk.models });
       queryClient.invalidateQueries({ queryKey: qk.dashboard });
+      queryClient.invalidateQueries({ queryKey: customerKeys.all });
       setMsg({ kind: "ok", text: `Booking created for ${customer}.` });
+      setCustomerId("");
       setCustomer("");
       setMobile("");
       setVillage("");
@@ -135,6 +139,7 @@ function RetailPage() {
               e.preventDefault();
               if (!customer.trim() || !activeSku) return;
               create.mutate({
+                customerId: customerId || undefined,
                 customer: customer.trim(),
                 mobile: mobile.trim() || undefined,
                 village: village.trim() || undefined,
@@ -146,6 +151,29 @@ function RetailPage() {
               });
             }}
           >
+            <Field label="Existing customer (optional)">
+              <select
+                className="input"
+                value={customerId}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  setCustomerId(id);
+                  const found = (cq.data ?? []).find((c) => c.id === id);
+                  if (found) {
+                    setCustomer(found.name);
+                    setMobile(found.contact);
+                    setVillage(found.village ?? "");
+                  }
+                }}
+              >
+                <option value="">— Walk-in / new customer —</option>
+                {(cq.data ?? []).map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} · {c.contact} ({c.tag})
+                  </option>
+                ))}
+              </select>
+            </Field>
             <Field label="Customer Name (required)">
               <input
                 required

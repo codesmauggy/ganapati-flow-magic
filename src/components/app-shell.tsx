@@ -9,6 +9,8 @@ import {
   Users,
   Receipt,
   BarChart3,
+  Contact,
+  ShieldCheck,
   Settings,
   Search,
   Menu,
@@ -23,9 +25,11 @@ const nav = [
   { to: "/stock", label: "Stock Inventory", icon: Package },
   { to: "/wholesale", label: "Wholesale Orders", icon: Truck },
   { to: "/retail", label: "Retail Counter", icon: ShoppingBag },
+  { to: "/customers", label: "Customers", icon: Contact },
   { to: "/staff", label: "Staff & Salary", icon: Users },
   { to: "/expenses", label: "Expenses", icon: Receipt },
   { to: "/reports", label: "Reports", icon: BarChart3 },
+  { to: "/admin", label: "Admin Console", icon: ShieldCheck },
 ] as const;
 
 export function AppShell({
@@ -246,6 +250,18 @@ export function CategoryChip({ category }: { category: "Ganapati" | "Gauri" | "D
       className={`inline-block rounded px-2 py-0.5 text-[11px] font-medium ${map[category]}`}
     >
       {category}
+    </span>
+  );
+}
+
+export function TagChip({ tag }: { tag: "Retail" | "Wholesale" }) {
+  return (
+    <span
+      className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+        tag === "Wholesale" ? "bg-primary/10 text-primary" : "bg-secondary/10 text-secondary"
+      }`}
+    >
+      {tag}
     </span>
   );
 }

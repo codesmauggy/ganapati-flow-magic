@@ -161,3 +161,127 @@ server-side.
 - IDs are strings on the wire (`"1"`, `"BK-9024"`). Cast in the serializer.
 - `formatCurrency` and low-stock detection happen on the frontend from
   primitive numbers returned by the API.
+
+---
+
+# Customers (CRM) + Admin Console — added endpoints
+
+The frontend now ships `/customers`, `/customers/:id` (ledger) and `/admin`.
+Implement the endpoints below; no other frontend change is needed.
+
+## `Customer` wire shape
+
+```json
+{
+  "id": "C-001",
+  "name": "Rohit Jadhav",
+  "contact": "9812345678",
+  "altContact": "9800000000",
+  "address": "Near Vitthal Mandir, Main Road",
+  "village": "Alandi",
+  "city": "Pune",
+  "tag": "Retail",                 // "Retail" | "Wholesale"
+  "dob": "1988-04-12",
+  "gstin": "27ABCDE1234F1Z5",
+  "refBy": "Manish K. Salunke",     // display name of the user who created it
+  "refById": "1",                   // request.user.id — server-set, never trust client
+  "notes": "Prefers 24 inch gold finish",
+  "isActive": true,
+  "createdAt": "2026-07-20T10:12:00Z",
+  "totalBilled": 250000,            // server-computed aggregate
+  "totalPaid": 180000,
+  "balance": 70000,                 // totalBilled - totalPaid
+  "bookingsCount": 6,
+  "lastTransactionDate": "2026-07-24"
+}
+```
+
+### Endpoints
+
+- `GET /api/customers/` → `Customer[]`
+- `POST /api/customers/` → `Customer`
+  Body: `name, contact, altContact?, address, village?, city?, tag, dob?, gstin?, notes?, isActive?`
+  Server sets `refBy`/`refById` from `request.user` and `createdAt`.
+- `GET /api/customers/{id}/` → `Customer`
+- `PATCH /api/customers/{id}/` → `Customer` (partial; same writable fields)
+- `DELETE /api/customers/{id}/` → `204`
+- `GET /api/customers/{id}/ledger/` → `CustomerLedger`
+
+### `CustomerLedger`
+
+```json
+{
+  "customer": { /* Customer */ },
+  "transactions": [
+    {
+      "id": "TX-1", "customerId": "C-001", "date": "2026-07-20",
+      "type": "Booking",              // Booking | Payment | Adjustment | Return
+      "reference": "BK-9024",
+      "description": "Dagadusheth 24\" Gold × 2",
+      "debit": 25000, "credit": 0,
+      "balance": 25000,               // running balance AFTER this row
+      "recordedBy": "Manish K. Salunke"
+    }
+  ],
+  "payments": [
+    {
+      "id": "PY-1", "customerId": "C-001", "date": "2026-07-21",
+      "amount": 5000,
+      "mode": "UPI",                  // Cash | UPI | Bank Transfer | Cheque | Card
+      "reference": "UTR123456",
+      "bookingId": "BK-9024",
+      "receivedBy": "Manish K. Salunke",
+      "note": "Advance"
+    }
+  ],
+  "bookings": [ /* Booking[] for this customer, newest first */ ]
+}
+```
+
+Return `transactions` in chronological order with `balance` accumulated
+server-side; the UI renders it verbatim.
+
+## Payments
+
+- `POST /api/payments/` → `CustomerPayment`
+  Body: `{ customerId, amount, mode, date?, reference?, bookingId?, note? }`
+  Server sets `receivedBy` from `request.user`, defaults `date` to today, and
+  appends a `Payment` ledger row (credit) for the customer.
+
+## Bookings ↔ Customers
+
+`POST /api/bookings/` now optionally accepts `customerId`. When present, link
+the booking to that customer (and prefer the stored customer's name/mobile);
+when absent, create-or-match a customer from `customer`/`mobile`/`village` so
+every booking still lands in someone's ledger. Every booking must append a
+`Booking` ledger row (debit = amount) and any `advance` must append a
+`Payment` row (credit).
+
+## Admin console mutations
+
+The `/admin` page uses standard DRF ModelViewSet routes:
+
+- Models: `POST /api/models/`, `PATCH /api/models/{id}/`, `DELETE /api/models/{id}/`
+- Workers: `POST /api/workers/`, `PATCH /api/workers/{id}/`, `DELETE /api/workers/{id}/`
+- Expenses: `POST /api/expenses/`, `PATCH /api/expenses/{id}/`, `DELETE /api/expenses/{id}/`
+- Bookings: `PATCH /api/bookings/{id}/` with `{ "status": "Dispatched" }`
+
+Writable fields match the read shapes documented earlier. `paidBy` on expenses
+and `collector` on bookings are server-derived from `request.user` when omitted.
+
+Gate all admin mutations to `role == "admin"` with a DRF permission class — the
+UI shows the console to any signed-in user but relies on the API to reject
+unauthorized writes and surfaces `detail` as the error message.
+
+## Suggested Django additions
+
+```
+erp/
+├── customers/            # Customer, CustomerPayment, LedgerEntry
+│   ├── models.py         # Customer(ref_by=FK(User)), Payment, LedgerEntry
+│   ├── serializers.py    # camelCase via source= or djangorestframework-camel-case
+│   └── views.py          # CustomerViewSet + @action(detail=True) ledger
+```
+
+Recommended: `djangorestframework-camel-case` so snake_case models serialize to
+the camelCase keys this frontend expects.

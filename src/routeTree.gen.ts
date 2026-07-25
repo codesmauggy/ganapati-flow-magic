@@ -18,7 +18,10 @@ import { Route as RetailRouteImport } from './routes/retail'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ExpensesRouteImport } from './routes/expenses'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CustomersIndexRouteImport } from './routes/customers.index'
+import { Route as CustomersCustomerIdRouteImport } from './routes/customers.$customerId'
 
 const WholesaleRoute = WholesaleRouteImport.update({
   id: '/wholesale',
@@ -65,14 +68,30 @@ const ExpensesRoute = ExpensesRouteImport.update({
   path: '/expenses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CustomersIndexRoute = CustomersIndexRouteImport.update({
+  id: '/customers/',
+  path: '/customers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CustomersCustomerIdRoute = CustomersCustomerIdRouteImport.update({
+  id: '/customers/$customerId',
+  path: '/customers/$customerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/expenses': typeof ExpensesRoute
   '/login': typeof LoginRoute
   '/reports': typeof ReportsRoute
@@ -82,9 +101,12 @@ export interface FileRoutesByFullPath {
   '/staff': typeof StaffRoute
   '/stock': typeof StockRoute
   '/wholesale': typeof WholesaleRoute
+  '/customers/$customerId': typeof CustomersCustomerIdRoute
+  '/customers/': typeof CustomersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/expenses': typeof ExpensesRoute
   '/login': typeof LoginRoute
   '/reports': typeof ReportsRoute
@@ -94,10 +116,13 @@ export interface FileRoutesByTo {
   '/staff': typeof StaffRoute
   '/stock': typeof StockRoute
   '/wholesale': typeof WholesaleRoute
+  '/customers/$customerId': typeof CustomersCustomerIdRoute
+  '/customers': typeof CustomersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/expenses': typeof ExpensesRoute
   '/login': typeof LoginRoute
   '/reports': typeof ReportsRoute
@@ -107,11 +132,14 @@ export interface FileRoutesById {
   '/staff': typeof StaffRoute
   '/stock': typeof StockRoute
   '/wholesale': typeof WholesaleRoute
+  '/customers/$customerId': typeof CustomersCustomerIdRoute
+  '/customers/': typeof CustomersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/expenses'
     | '/login'
     | '/reports'
@@ -121,9 +149,12 @@ export interface FileRouteTypes {
     | '/staff'
     | '/stock'
     | '/wholesale'
+    | '/customers/$customerId'
+    | '/customers/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/expenses'
     | '/login'
     | '/reports'
@@ -133,9 +164,12 @@ export interface FileRouteTypes {
     | '/staff'
     | '/stock'
     | '/wholesale'
+    | '/customers/$customerId'
+    | '/customers'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/expenses'
     | '/login'
     | '/reports'
@@ -145,10 +179,13 @@ export interface FileRouteTypes {
     | '/staff'
     | '/stock'
     | '/wholesale'
+    | '/customers/$customerId'
+    | '/customers/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   ExpensesRoute: typeof ExpensesRoute
   LoginRoute: typeof LoginRoute
   ReportsRoute: typeof ReportsRoute
@@ -158,6 +195,8 @@ export interface RootRouteChildren {
   StaffRoute: typeof StaffRoute
   StockRoute: typeof StockRoute
   WholesaleRoute: typeof WholesaleRoute
+  CustomersCustomerIdRoute: typeof CustomersCustomerIdRoute
+  CustomersIndexRoute: typeof CustomersIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -225,6 +264,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExpensesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -232,11 +278,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/customers/': {
+      id: '/customers/'
+      path: '/customers'
+      fullPath: '/customers/'
+      preLoaderRoute: typeof CustomersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/customers/$customerId': {
+      id: '/customers/$customerId'
+      path: '/customers/$customerId'
+      fullPath: '/customers/$customerId'
+      preLoaderRoute: typeof CustomersCustomerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   ExpensesRoute: ExpensesRoute,
   LoginRoute: LoginRoute,
   ReportsRoute: ReportsRoute,
@@ -246,17 +307,9 @@ const rootRouteChildren: RootRouteChildren = {
   StaffRoute: StaffRoute,
   StockRoute: StockRoute,
   WholesaleRoute: WholesaleRoute,
+  CustomersCustomerIdRoute: CustomersCustomerIdRoute,
+  CustomersIndexRoute: CustomersIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

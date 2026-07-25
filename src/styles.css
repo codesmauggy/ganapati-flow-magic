@@ -140,3 +140,29 @@
     font-feature-settings: "lnum";
   }
 }
+
+@layer base {
+  /* Shared form control used across ERP data-entry forms */
+  .input {
+    display: block;
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface, var(--color-background));
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-foreground);
+    outline: none;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+  }
+
+  .input:focus {
+    border-color: color-mix(in oklab, var(--color-primary) 45%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 15%, transparent);
+  }
+
+  .input:disabled {
+    opacity: 0.6;
+  }
+}

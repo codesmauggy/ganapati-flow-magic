@@ -10,6 +10,8 @@ Manish Kala Kendra has been manufacturing Ganapati, Gauri and Devi idols in Pune
 - [Stock Inventory](/stock): Ganapati, Gauri and Devi models with photos, live stock, prices and low-stock alerts.
 - [Wholesale Orders](/wholesale): Wholesale customer orders, tempo loading, invoices and collection tracking.
 - [Retail Counter](/retail): Quick retail bookings, advance payments and collector-assigned invoices.
+- [Customers](/customers): Customer master with contact, address, retail/wholesale tag, birthday, referrer, ledger and payment history.
+- [Admin Console](/admin): Master data entry and modification for customers, models, staff, expenses and booking status.
 - [Staff & Salary](/staff): Workshop staff, attendance, piece-rate production and salary ledger.
 - [Expenses](/expenses): Colour, raw material, transport and utility expenses by month and category.
 - [Reports](/reports): Business, financial, inventory and sales reports for the season.

@@ -112,3 +112,84 @@ export const formatCurrency = (n: number) =>
     : n >= 1000
       ? `₹ ${n.toLocaleString("en-IN")}`
       : `₹ ${n}`;
+
+// ---------------------------------------------------------------------------
+// Customers (CRM) — master record + full transaction / payment history
+// ---------------------------------------------------------------------------
+
+export type CustomerTag = "Retail" | "Wholesale";
+
+export interface Customer {
+  id: string;
+  name: string;
+  contact: string; // primary mobile
+  altContact?: string;
+  address: string;
+  village?: string;
+  city?: string;
+  tag: CustomerTag;
+  dob?: string; // ISO date
+  gstin?: string;
+  refBy: string; // full name of the user who registered the customer
+  refById?: string; // user id (server-derived from request.user)
+  notes?: string;
+  isActive: boolean;
+  createdAt: string; // ISO datetime
+  // Server-computed history aggregates
+  totalBilled: number;
+  totalPaid: number;
+  balance: number; // totalBilled - totalPaid
+  bookingsCount: number;
+  lastTransactionDate?: string;
+}
+
+export type LedgerEntryType = "Booking" | "Payment" | "Adjustment" | "Return";
+
+export interface CustomerTransaction {
+  id: string;
+  customerId: string;
+  date: string; // ISO date
+  type: LedgerEntryType;
+  reference?: string; // booking id / receipt no
+  description: string;
+  debit: number; // billed to customer
+  credit: number; // received from customer
+  balance: number; // running balance after this entry
+  recordedBy: string;
+}
+
+export type PaymentMode = "Cash" | "UPI" | "Bank Transfer" | "Cheque" | "Card";
+
+export interface CustomerPayment {
+  id: string;
+  customerId: string;
+  date: string;
+  amount: number;
+  mode: PaymentMode;
+  reference?: string; // UTR / cheque no
+  bookingId?: string;
+  receivedBy: string;
+  note?: string;
+}
+
+export interface CustomerLedger {
+  customer: Customer;
+  transactions: CustomerTransaction[];
+  payments: CustomerPayment[];
+  bookings: Booking[];
+}
+
+export const PAYMENT_MODES: PaymentMode[] = [
+  "Cash",
+  "UPI",
+  "Bank Transfer",
+  "Cheque",
+  "Card",
+];
+
+export const formatDate = (iso?: string) => {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+};
