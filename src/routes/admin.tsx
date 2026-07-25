@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Database, Package, Receipt, ShieldCheck, Trash2, Truck, Users } from "lucide-react";
+import { Package, Receipt, ShieldCheck, Trash2, Truck, Users } from "lucide-react";
 import { AppShell, AsyncState, CategoryChip, StatusPill, TagChip } from "@/components/app-shell";
 import {
   bookingsQuery,

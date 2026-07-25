@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, UserPlus } from "lucide-react";
-import { AppShell, AsyncState } from "@/components/app-shell";
+import { AppShell, AsyncState, TagChip } from "@/components/app-shell";
 import {
   createCustomer,
   customerKeys,
@@ -305,18 +305,6 @@ function CustomersPage() {
         </AsyncState>
       </div>
     </AppShell>
-  );
-}
-
-export function TagChip({ tag }: { tag: CustomerTag }) {
-  return (
-    <span
-      className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-        tag === "Wholesale" ? "bg-primary/10 text-primary" : "bg-secondary/10 text-secondary"
-      }`}
-    >
-      {tag}
-    </span>
   );
 }
 

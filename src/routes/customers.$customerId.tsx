@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, IndianRupee, Pencil, Save } from "lucide-react";
-import { AppShell, AsyncState, StatusPill } from "@/components/app-shell";
+import { AppShell, AsyncState, StatusPill, TagChip } from "@/components/app-shell";
 import {
   createPayment,
   customerKeys,
@@ -13,7 +13,6 @@ import {
 } from "@/lib/api/queries";
 import { PAYMENT_MODES, formatCurrency, formatDate, type CustomerTag, type PaymentMode } from "@/lib/types";
 import { ApiError } from "@/lib/api-client";
-import { TagChip } from "./customers.index";
 
 export const Route = createFileRoute("/customers/$customerId")({
   head: () => ({
