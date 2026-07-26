@@ -12,6 +12,9 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 const spaBuild = process.env.SPA_BUILD === "1";
 
 export default defineConfig({
+  // The static bundle needs no server runtime — skip nitro so the SPA shell is
+  // prerendered from Vite's own SSR output.
+  nitro: spaBuild ? false : undefined,
   tanstackStart: spaBuild
     ? {
         // Emits dist/client/index.html — the SPA shell used as Django's fallback.
