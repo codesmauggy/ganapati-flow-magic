@@ -6,10 +6,20 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+// `SPA_BUILD=1 bun run build:spa` produces a static bundle (shell index.html +
+// hashed assets) that Django/nginx can serve with a catch-all fallback.
+// The default build keeps the Lovable hosting server entry.
+const spaBuild = process.env.SPA_BUILD === "1";
+
 export default defineConfig({
-  tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
-    server: { entry: "server" },
-  },
+  tanstackStart: spaBuild
+    ? {
+        // Emits dist/client/index.html — the SPA shell used as Django's fallback.
+        spa: { enabled: true },
+      }
+    : {
+        // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
+        // nitro/vite builds from this
+        server: { entry: "server" },
+      },
 });
