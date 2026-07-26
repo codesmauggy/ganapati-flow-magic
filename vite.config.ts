@@ -17,9 +17,9 @@ export default defineConfig({
       maskPath: "/",
       prerender: { enabled: true, crawlLinks: false },
     },
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
-    server: { entry: "server" },
+    // No custom server entry in SPA mode: there is no SSR request path to wrap,
+    // and the shell prerender step needs the framework's default entry.
   },
 });
+
 
