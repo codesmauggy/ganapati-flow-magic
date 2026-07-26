@@ -19,7 +19,9 @@ const spaBase = `/${(process.env.SPA_BASE ?? "").replace(/^\/+|\/+$/g, "")}/`.re
 export default defineConfig({
   // The static bundle needs no server runtime — skip nitro so the SPA shell is
   // prerendered from Vite's own SSR output.
-  nitro: spaBuild ? false : undefined,
+  nitro: spaBuild 
+    ? false 
+    : { preset: 'node-server' },
   vite: spaBuild ? { base: spaBase } : {},
   tanstackStart: spaBuild
     ? {

@@ -156,7 +156,7 @@ function CustomersPage() {
             }}
           >
             <Field label="Name (required)">
-              <input required className="input" value={form.name} onChange={(e) => set("name")(e.target.value)} placeholder="e.g. Rohit Jadhav" />
+              <input required className="input" value={form.name} onChange={(e) => set("name")(e.target.value)} placeholder="e.g. Rahul Rasal" />
             </Field>
             <Field label="Contact (required)">
               <input required className="input" value={form.contact} onChange={(e) => set("contact")(e.target.value)} placeholder="98XXXXXXXX" />

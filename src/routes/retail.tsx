@@ -180,7 +180,7 @@ function RetailPage() {
                 value={customer}
                 onChange={(e) => setCustomer(e.target.value)}
                 className="input"
-                placeholder="e.g. Rohit Jadhav"
+                placeholder="e.g. Rahul Rasal"
               />
             </Field>
             <div className="grid grid-cols-2 gap-3">

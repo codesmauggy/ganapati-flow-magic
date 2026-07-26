@@ -59,7 +59,7 @@ monetary values are integers in rupees (₹). `photo` is an absolute URL
 Request:
 ```json
 {
-  "customer": "Rohit Jadhav", "mobile": "98...", "village": "Alandi",
+  "customer": "Rahul Rasal", "mobile": "98...", "village": "Alandi",
   "modelSku": "GN-24-DG", "qty": 2, "advance": 5000,
   "channel": "Retail",          // "Wholesale" | "Retail"
   "pickupDate": "2026-07-25"
@@ -68,7 +68,7 @@ Request:
 Response — created `Booking`:
 ```json
 {
-  "id": "BK-9025", "customer": "Rohit Jadhav", "village": "Alandi",
+  "id": "BK-9025", "customer": "Rahul Rasal", "village": "Alandi",
   "mobile": "98...", "modelSku": "GN-24-DG",
   "modelName": "Dagadusheth 24\" Gold",
   "qty": 2, "amount": 25000, "advance": 5000,
@@ -174,7 +174,7 @@ Implement the endpoints below; no other frontend change is needed.
 ```json
 {
   "id": "C-001",
-  "name": "Rohit Jadhav",
+  "name": "Rahul Rasal",
   "contact": "9812345678",
   "altContact": "9800000000",
   "address": "Near Vitthal Mandir, Main Road",
