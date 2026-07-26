@@ -8,18 +8,8 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
   tanstackStart: {
-    // Client-only SPA: the app is served as a static shell + JS bundle and every
-    // route renders in the browser. All data comes from the Django REST API, so
-    // there is nothing to render on the server.
-    spa: {
-      enabled: true,
-      // The prerendered shell that every URL falls back to (like index.html).
-      maskPath: "/",
-      prerender: { enabled: true, crawlLinks: false },
-    },
-    // No custom server entry in SPA mode: there is no SSR request path to wrap,
-    // and the shell prerender step needs the framework's default entry.
+    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
+    // nitro/vite builds from this
+    server: { entry: "server" },
   },
 });
-
-
