@@ -4,9 +4,9 @@ import { AppShell } from "@/components/app-shell";
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
-      { title: "Settings · Manish Kala Kendra ERP" },
+      { title: "Settings · Manish Kala Kendra" },
       { name: "description", content: "Configure company details, collectors, categories and payment modes — the master data that powers every module of the workshop ERP." },
-      { property: "og:title", content: "Settings · Manish Kala Kendra ERP" },
+      { property: "og:title", content: "Settings · Manish Kala Kendra" },
       { property: "og:description", content: "Configure company details, collectors, categories and payment modes — the master data that powers every module of the workshop ERP." },
     ],
   }),
@@ -22,7 +22,7 @@ function SettingsPage() {
           rows={[
             ["Name", "Manish Kala Kendra"],
             ["Since", "1989"],
-            ["Address", "Pune, Maharashtra"],
+            ["Address", "Karjat, Maharashtra"],
             ["GST", "27ABCDE1234F1Z5"],
           ]}
         />

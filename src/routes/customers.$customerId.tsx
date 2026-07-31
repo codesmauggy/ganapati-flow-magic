@@ -17,13 +17,13 @@ import { ApiError } from "@/lib/api-client";
 export const Route = createFileRoute("/customers/$customerId")({
   head: () => ({
     meta: [
-      { title: "Customer Ledger · Manish Kala Kendra ERP" },
+      { title: "Customer Ledger · Manish Kala Kendra" },
       {
         name: "description",
         content:
           "Single customer profile with running ledger, booking history, payment receipts and outstanding balance.",
       },
-      { property: "og:title", content: "Customer Ledger · Manish Kala Kendra ERP" },
+      { property: "og:title", content: "Customer Ledger · Manish Kala Kendra" },
       {
         property: "og:description",
         content:

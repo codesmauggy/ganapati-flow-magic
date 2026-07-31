@@ -7,13 +7,13 @@ import { formatCurrency } from "@/lib/types";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dashboard · Manish Kala Kendra ERP" },
+      { title: "Dashboard · Manish Kala Kendra" },
       {
         name: "description",
         content:
           "Live overview of stock, wholesale, retail, collections and net profit for the current Ganapati season.",
       },
-      { property: "og:title", content: "Dashboard · Manish Kala Kendra ERP" },
+      { property: "og:title", content: "Dashboard · Manish Kala Kendra" },
       { property: "og:description", content: "Live overview of stock, wholesale, retail, collections and net profit for the current Ganapati season." },
     ],
   }),
@@ -46,7 +46,7 @@ function Dashboard() {
     : [];
 
   return (
-    <AppShell title="Operational Overview" subtitle="Ganapati Season · Pune Workshop">
+    <AppShell title="Operational Overview" subtitle="Ganapati Season · Karjat Workshop">
       <AsyncState isLoading={kpisQ.isLoading} isError={kpisQ.isError} error={kpisQ.error}>
         {k && (
           <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 md:mb-8 md:grid-cols-3 xl:grid-cols-4">

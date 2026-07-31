@@ -42,6 +42,7 @@ export interface Booking {
   status: BookingStatus;
   channel: Channel;
   collector: string;
+   collector_fullName?: string;
   date: string; // ISO date
 }
 
@@ -93,11 +94,14 @@ export interface DashboardKpis {
 }
 
 export interface AuthUser {
-  id: string;
-  username: string;
-  fullName: string;
-  role: "admin" | "wholesale" | "retail" | "staff";
-  email?: string;
+  id: number
+  username: string
+  first_name: string
+  last_name: string
+  fullName: string
+  email: string
+  role: 'admin' | 'manager' | 'staff' | 'wholesaler' | 'customer' // etc.
+  is_active?: boolean;
 }
 
 export interface LoginResponse {

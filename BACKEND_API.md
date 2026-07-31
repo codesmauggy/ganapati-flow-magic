@@ -1,4 +1,4 @@
-# Backend API Contract — Manish Kala Kendra ERP
+# Backend API Contract — Manish Kala Kendra
 
 This React frontend is fully wired to a REST backend. Implement the endpoints
 below in Django + Django REST Framework + SimpleJWT and the app will work end
@@ -23,9 +23,9 @@ transparently retries once on `401` using `refresh`.
 {
   "id": "1",
   "username": "manish",
-  "fullName": "Manish K. Salunke",
+  "fullName": "Manish E. Jadhav",
   "role": "admin",             // admin | wholesale | retail | staff
-  "email": "manish@example.com"
+  "email": "manish@admin.com"
 }
 ```
 
@@ -101,7 +101,7 @@ the authenticated user, and decrements `Model.available` by `qty`.
 
 ### `GET /api/tempos/` → `Tempo[]`
 ```json
-{ "id": "T-01", "tempo": "MH-12-AB-4521", "place": "Pune Hub",
+{ "id": "T-01", "tempo": "MH-46-AB-4521", "place": "Karjat Hub",
   "items": 45, "status": "Loading" }
 ```
 
@@ -179,7 +179,7 @@ Implement the endpoints below; no other frontend change is needed.
   "altContact": "9800000000",
   "address": "Near Vitthal Mandir, Main Road",
   "village": "Alandi",
-  "city": "Pune",
+  "city": "Karjat",
   "tag": "Retail",                 // "Retail" | "Wholesale"
   "dob": "1988-04-12",
   "gstin": "27ABCDE1234F1Z5",

@@ -1,7 +1,4 @@
-// Auth context wired to the Django JWT (SimpleJWT-style) endpoints.
-// - login/logout store tokens in localStorage via api-client helpers
-// - refresh is handled inside apiRequest (see api-client.ts) so components
-//   only need to react to `user === null` (unauthenticated)
+// src/lib/auth.tsx
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api } from "./api-client";
@@ -19,19 +16,28 @@ interface AuthContextValue {
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
+  setUser: (user: AuthUser | null) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUserState] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Hydrate from localStorage on mount (client-only)
   useEffect(() => {
     const stored = getStoredUser<AuthUser>();
-    if (stored && getAccessToken()) setUser(stored);
+    if (stored && getAccessToken()) setUserState(stored);
     setLoading(false);
+  }, []);
+
+  // Persist user to localStorage when setUser is called
+  const setUser = useCallback((user: AuthUser | null) => {
+    setUserState(user);
+    if (user) {
+      setStoredUser(user);
+    }
   }, []);
 
   const login = useCallback(async (username: string, password: string) => {
@@ -41,16 +47,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       { auth: false },
     );
     setTokens(res.access, res.refresh);
-    setStoredUser(res.user);
-    setUser(res.user);
-  }, []);
+    setUser(res.user); // this will also store in localStorage
+  }, [setUser]);
 
   const logout = useCallback(() => {
     clearAuth();
-    setUser(null);
+    setUserState(null);
   }, []);
 
-  const value = useMemo(() => ({ user, loading, login, logout }), [user, loading, login, logout]);
+  const value = useMemo(
+    () => ({ user, loading, login, logout, setUser }),
+    [user, loading, login, logout, setUser]
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

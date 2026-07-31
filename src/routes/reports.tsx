@@ -7,12 +7,12 @@ import { formatCurrency } from "@/lib/types";
 export const Route = createFileRoute("/reports")({
   head: () => ({
     meta: [
-      { title: "Reports · Manish Kala Kendra ERP" },
+      { title: "Reports · Manish Kala Kendra" },
       {
         name: "description",
         content: "Business, financial, inventory, collector and sales reports for the Ganapati season.",
       },
-      { property: "og:title", content: "Reports · Manish Kala Kendra ERP" },
+      { property: "og:title", content: "Reports · Manish Kala Kendra" },
       { property: "og:description", content: "Business, financial, inventory, collector and sales reports for the Ganapati season." },
     ],
   }),
@@ -37,10 +37,10 @@ function ReportsPage() {
   }, {});
   const collectors = bookings.reduce<Record<string, { collected: number; pending: number }>>(
     (acc, b) => {
-      const c = acc[b.collector] ?? { collected: 0, pending: 0 };
+      const c = acc[b.collector_fullName || b.collector] ?? { collected: 0, pending: 0 };
       c.collected += b.advance;
       c.pending += b.amount - b.advance;
-      acc[b.collector] = c;
+      acc[b.collector_fullName || b.collector] = c;
       return acc;
     },
     {},

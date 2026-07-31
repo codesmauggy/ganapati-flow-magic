@@ -74,9 +74,10 @@ async function tryRefresh(): Promise<boolean> {
 
 type Options = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  body?: unknown;
-  auth?: boolean; // default true
+  body?: unknown | FormData;
+  auth?: boolean;
   signal?: AbortSignal;
+  headers?: Record<string, string>;
 };
 
 async function doFetch(path: string, opts: Options): Promise<Response> {
@@ -87,16 +88,27 @@ async function doFetch(path: string, opts: Options): Promise<Response> {
       "VITE_API_BASE_URL is not configured. Copy .env.example to .env and point it at your Django backend.",
     );
   }
-  const headers: Record<string, string> = { Accept: "application/json" };
-  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+
+  const headers: Record<string, string> = { Accept: "application/json", ...(opts.headers || {}) };
+  const isFormData = opts.body instanceof FormData;
+
+  // Only set Content-Type for non‑FormData bodies
+  if (opts.body !== undefined && !isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
+  // For FormData, the browser sets the correct Content-Type with boundary.
+
   if (opts.auth !== false) {
     const t = getAccessToken();
     if (t) headers.Authorization = `Bearer ${t}`;
   }
+
+  const body = isFormData ? (opts.body as FormData) : (opts.body !== undefined ? JSON.stringify(opts.body) : undefined);
+
   return fetch(`${BASE}${path}`, {
     method: opts.method ?? "GET",
     headers,
-    body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+    body,
     signal: opts.signal,
   });
 }

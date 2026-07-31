@@ -1,5 +1,5 @@
 """
-Django SPA fallback for the Manish Kala Kendra ERP frontend.
+Django SPA fallback for the Manish Kala Kendra frontend.
 
 Drop this file into your Django project (next to `settings.py`) and wire the
 catch-all at the very END of the root `urls.py`. It serves the prerendered

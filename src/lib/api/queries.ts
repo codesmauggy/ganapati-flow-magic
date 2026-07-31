@@ -1,10 +1,9 @@
-// Centralized React Query "queryOptions" for the ERP.
-// Every list/detail read used across the app funnels through here so cache
-// keys stay consistent and mutations can invalidate precisely.
-
+// src/lib/api/queries.ts
 import { queryOptions } from "@tanstack/react-query";
 import { api } from "../api-client";
+import { toSnakeCase, toSnakeCaseFormData } from "../utils";
 import type {
+  AuthUser,
   Booking,
   BookingStatus,
   Customer,
@@ -60,7 +59,7 @@ export const dashboardQuery = queryOptions({
 
 export type CreateBookingInput = {
   customer: string;
-  customerId?: string; // link to an existing Customer record (preferred)
+  customerId?: string;
   mobile?: string;
   village?: string;
   modelSku: string;
@@ -139,12 +138,14 @@ export const createPayment = (input: PaymentInput) =>
 // Admin data entry — master records (models, workers, expenses, bookings)
 // ---------------------------------------------------------------------------
 
+// ... (imports and other exports unchanged)
+
 export type ModelInput = {
   sku: string;
   name: string;
   category: "Ganapati" | "Gauri" | "Devi";
   size: string;
-  photo?: string;
+  photo?: string | File | null;   // allow File or URL
   purchasePrice: number;
   sellingPrice: number;
   rawMaterialCost: number;
@@ -152,9 +153,31 @@ export type ModelInput = {
   lowStockAt: number;
 };
 
-export const createModel = (input: ModelInput) => api.post<Model>("/api/models/", input);
-export const updateModel = ({ id, ...input }: Partial<ModelInput> & { id: string }) =>
-  api.patch<Model>(`/api/models/${id}/`, input);
+export const createModel = (input: ModelInput) => {
+  const hasFile = input.photo instanceof File;
+  if (hasFile) {
+    const formData = toSnakeCaseFormData(input, 'photo');
+    // ✅ Do NOT set Content-Type header – browser will set it with boundary
+    return api.post<Model>("/api/models/", formData);
+  } else {
+    const payload = { ...input };
+    if (!payload.photo) delete payload.photo; // avoid sending empty string
+    return api.post<Model>("/api/models/", toSnakeCase(payload));
+  }
+};
+
+export const updateModel = ({ id, ...input }: Partial<ModelInput> & { id: string }) => {
+  const hasFile = input.photo instanceof File;
+  if (hasFile) {
+    const formData = toSnakeCaseFormData(input, 'photo');
+    return api.patch<Model>(`/api/models/${id}/`, formData);
+  } else {
+    const payload = { ...input };
+    if (payload.photo === null || payload.photo === '') delete payload.photo;
+    return api.patch<Model>(`/api/models/${id}/`, toSnakeCase(payload));
+  }
+};
+
 export const deleteModel = (id: string) => api.delete<void>(`/api/models/${id}/`);
 
 export type WorkerInput = {
@@ -186,3 +209,36 @@ export const deleteExpense = (id: string) => api.delete<void>(`/api/expenses/${i
 
 export const updateBookingStatus = ({ id, status }: { id: string; status: BookingStatus }) =>
   api.patch<Booking>(`/api/bookings/${id}/`, { status });
+
+export type UserUpdateInput = {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+};
+
+export const updateUserProfile = (input: UserUpdateInput) =>
+  api.patch<AuthUser>("/api/auth/me/", input);
+
+
+export const usersQuery = queryOptions({
+  queryKey: ["users"],
+  queryFn: () => api.get<AuthUser[]>("/api/users/"),
+});
+
+export type UserInput = {
+  username: string;
+  password?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  role?: AuthUser["role"];
+  is_active?: boolean;
+};
+
+export const createUser = (input: UserInput) =>
+  api.post<AuthUser>("/api/users/", input);
+
+export const updateUser = ({ id, ...input }: Partial<UserInput> & { id: string }) =>
+  api.patch<AuthUser>(`/api/users/${id}/`, input);
+
+export const deleteUser = (id: string) => api.delete<void>(`/api/users/${id}/`);

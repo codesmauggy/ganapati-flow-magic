@@ -6,10 +6,10 @@ import { ApiError } from "@/lib/api-client";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Sign in · Manish Kala Kendra ERP" },
+      { title: "Sign in · Manish Kala Kendra" },
       { name: "description", content: "Collector and administrator sign-in for the Manish Kala Kendra manufacturing ERP." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Sign in · Manish Kala Kendra ERP" },
+      { property: "og:title", content: "Sign in · Manish Kala Kendra" },
       { property: "og:description", content: "Collector and administrator sign-in for the Manish Kala Kendra manufacturing ERP." },
     ],
   }),
@@ -53,7 +53,7 @@ function LoginPage() {
         <div className="mb-8 text-center">
           <h1 className="font-display text-3xl text-secondary">Manish Kala Kendra</h1>
           <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-primary">
-            Manufacturing ERP · Since 1989
+            · Since 1989 ·
           </p>
         </div>
         <form

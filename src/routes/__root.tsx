@@ -77,14 +77,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Dashboard · Manish Kala Kendra ERP" },
+      { title: "Dashboard · Manish Kala Kendra" },
       {
         name: "description",
         content:
           "Live overview of stock, wholesale, retail, collections and net profit for the current Ganapati season.",
       },
       { name: "author", content: "Manish Kala Kendra" },
-      { property: "og:title", content: "Dashboard · Manish Kala Kendra ERP" },
+      { property: "og:title", content: "Dashboard · Manish Kala Kendra" },
       {
         property: "og:description",
         content:
@@ -92,7 +92,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Dashboard · Manish Kala Kendra ERP" },
+      { name: "twitter:title", content: "Dashboard · Manish Kala Kendra" },
       { name: "twitter:description", content: "Live overview of stock, wholesale, retail, collections and net profit for the current Ganapati season." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7e114dad-cd7c-4393-9a8c-a16c530d79ec/id-preview-848fbd36--8c50d37f-cbdb-437f-a3c1-c380a19e9f46.lovable.app-1784746726007.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7e114dad-cd7c-4393-9a8c-a16c530d79ec/id-preview-848fbd36--8c50d37f-cbdb-437f-a3c1-c380a19e9f46.lovable.app-1784746726007.png" },
@@ -117,17 +117,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               name: "Manish Kala Kendra",
               url: "https://ganapati-flow-magic.lovable.app",
               foundingDate: "1989",
-              description: "Manufacturer of Ganapati, Gauri and Devi idols based in Pune, Maharashtra.",
+              description: "Manufacturer of Ganapati, Gauri and Devi idols based in Karjat, Maharashtra.",
               address: {
                 "@type": "PostalAddress",
-                addressLocality: "Pune",
+                addressLocality: "Karjat",
                 addressRegion: "Maharashtra",
                 addressCountry: "IN",
               },
             },
             {
               "@type": "WebSite",
-              name: "Manish Kala Kendra ERP",
+              name: "Manish Kala Kendra",
               url: "https://ganapati-flow-magic.lovable.app",
             },
           ],

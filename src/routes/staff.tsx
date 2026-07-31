@@ -3,16 +3,17 @@ import { useQuery } from "@tanstack/react-query";
 import { AppShell, AsyncState, StatusPill } from "@/components/app-shell";
 import { workersQuery } from "@/lib/api/queries";
 import { formatCurrency } from "@/lib/types";
+import { Plus } from "lucide-react";
 
 export const Route = createFileRoute("/staff")({
   head: () => ({
     meta: [
-      { title: "Staff & Salary · Manish Kala Kendra ERP" },
+      { title: "Staff & Salary · Manish Kala Kendra" },
       {
         name: "description",
         content: "Workshop staff, attendance, piece-rate production and salary ledger with carry-forward.",
       },
-      { property: "og:title", content: "Staff & Salary · Manish Kala Kendra ERP" },
+      { property: "og:title", content: "Staff & Salary · Manish Kala Kendra" },
       { property: "og:description", content: "Workshop staff, attendance, piece-rate production and salary ledger with carry-forward." },
     ],
   }),
@@ -27,7 +28,15 @@ function StaffPage() {
   const present = workers.filter((w) => w.attendance === "Present").length;
 
   return (
-    <AppShell title="Staff & Salary" subtitle="Piece-rate production, attendance and salary ledger">
+    <AppShell title="Staff & Salary" 
+    subtitle="Piece-rate production, attendance and salary ledger"
+    actions={
+      <button className="hidden items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 md:inline-flex">
+        <Plus className="h-4 w-4" />
+        New Worker
+      </button>
+    }
+    >
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
         <Tile label="Total Workers" value={String(workers.length)} />
         <Tile label="Present Today" value={`${present} / ${workers.length}`} />

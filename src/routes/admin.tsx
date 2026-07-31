@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Package, Receipt, ShieldCheck, Trash2, Truck, Users } from "lucide-react";
+import { Package, Receipt, ShieldCheck, Trash2, Truck, Users, X, Pencil } from "lucide-react";
 import { AppShell, AsyncState, CategoryChip, StatusPill, TagChip } from "@/components/app-shell";
 import {
   bookingsQuery,
@@ -22,24 +22,30 @@ import {
   updateModel,
   updateWorker,
   workersQuery,
+  usersQuery,
+  createUser,
+  updateUser,
+  deleteUser,
   type ExpenseInput,
   type ModelInput,
   type WorkerInput,
+  type UserInput,
 } from "@/lib/api/queries";
-import { formatCurrency, formatDate, type BookingStatus, type Category } from "@/lib/types";
+import { AuthUser, formatCurrency, formatDate, type BookingStatus, type Category } from "@/lib/types";
 import { ApiError } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth";
+import { MyProfile, type Flash } from "./profile"; // 👈 import from profile page
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Admin Console · Manish Kala Kendra ERP" },
+      { title: "Admin Console · Manish Kala Kendra" },
       {
         name: "description",
         content:
           "Admin console for master data entry and modification — customers, idol models, workshop staff, expenses and booking status overrides.",
       },
-      { property: "og:title", content: "Admin Console · Manish Kala Kendra ERP" },
+      { property: "og:title", content: "Admin Console · Manish Kala Kendra" },
       {
         property: "og:description",
         content:
@@ -59,6 +65,7 @@ const TABS = [
   { id: "workers", label: "Staff", icon: Users },
   { id: "expenses", label: "Expenses", icon: Receipt },
   { id: "bookings", label: "Bookings", icon: Truck },
+  { id: "users", label: "Users", icon: Users },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -76,25 +83,47 @@ function AdminPage() {
   const { user } = useAuth();
   const [tab, setTab] = useState<TabId>("customers");
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "manager";
 
-  const flash = (kind: "ok" | "err", text: string) => {
+  const flash: Flash = (kind, text) => {
     setMsg({ kind, text });
     setTimeout(() => setMsg(null), 3500);
   };
 
+  // Non‑admin users see their profile
+  if (!isAdmin) {
+    return (
+      <AppShell title="My Profile" subtitle="View and update your personal information">
+        {msg && (
+          <div
+            className={`mb-4 rounded-lg px-4 py-3 text-sm ${
+              msg.kind === "ok" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+            }`}
+          >
+            {msg.text}
+          </div>
+        )}
+        <MyProfile user={user} flash={flash} />
+      </AppShell>
+    );
+  }
+
+  // Admin/Manager console
   return (
-    <AppShell title="Admin Console" subtitle="Master data entry, corrections and status overrides">
-      <div className="mb-6 flex items-start gap-3 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-tile)]">
+    <AppShell
+      title="Admin Console"
+      subtitle="Master data entry, corrections and status overrides"
+    >
+      <div className="mb-6 flex items-start gap-3 rounded-xl border border-border bg-surface p-4 shadow-(--shadow-tile)">
         <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
         <div className="text-sm">
           <p className="font-semibold">
             Signed in as {user?.fullName || user?.username} · <span className="capitalize">{user?.role}</span>
           </p>
           <p className="text-[11px] text-muted-foreground">
-            {isAdmin
+            {user?.role === "admin"
               ? "You have full write access. All changes are written straight to the backend database."
-              : "Write access is enforced server-side by role — non-admin edits will be rejected by the API."}
+              : "Write access is enforced server‑side by role — non‑admin edits will be rejected by the API."}
           </p>
         </div>
       </div>
@@ -135,16 +164,20 @@ function AdminPage() {
       {tab === "workers" && <WorkersAdmin flash={flash} />}
       {tab === "expenses" && <ExpensesAdmin flash={flash} />}
       {tab === "bookings" && <BookingsAdmin flash={flash} />}
+      {tab === "users" && <UsersAdmin flash={flash} />}
     </AppShell>
   );
 }
 
-type Flash = (kind: "ok" | "err", text: string) => void;
+// ------------------------------------------------------------
+// Helper components
+// ------------------------------------------------------------
+
 const errText = (err: unknown, fallback: string) => (err instanceof ApiError ? err.message : fallback);
 
 function Panel({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-tile)]">
+    <section className="overflow-hidden rounded-xl border border-border bg-surface shadow-(--shadow-tile)">
       <div className="border-b border-border px-4 py-4 sm:px-6">
         <h2 className="font-display text-lg">{title}</h2>
         {subtitle ? <p className="text-[11px] text-muted-foreground">{subtitle}</p> : null}
@@ -176,6 +209,10 @@ function IconButton({ onClick, disabled, label }: { onClick: () => void; disable
     </button>
   );
 }
+
+// ------------------------------------------------------------
+// Admin panels (Customers, Models, Workers, Expenses, Bookings, Users)
+// ------------------------------------------------------------
 
 /* ------------------------------- Customers ------------------------------- */
 
@@ -312,54 +349,120 @@ function ModelsAdmin({ flash }: { flash: Flash }) {
     onError: (e) => flash("err", errText(e, "Could not delete the model.")),
   });
 
+  const handleAddSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.sku.trim() || !form.name.trim()) {
+      flash("err", "SKU and Name are required.");
+      return;
+    }
+    add.mutate(form);
+  };
+
   return (
     <div className="space-y-6">
       <Panel title="Add model / SKU">
         <form
-          className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-3 sm:p-6"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!form.sku.trim() || !form.name.trim()) return;
-            add.mutate({ ...form, photo: form.photo || undefined });
-          }}
+          onSubmit={handleAddSubmit}
+          className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-3 lg:grid-cols-4 sm:p-6"
         >
           <Field label="SKU">
-            <input required className="input" value={form.sku} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} placeholder="GN-24-DG" />
+            <input
+              required
+              className="input"
+              value={form.sku}
+              onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))}
+              placeholder="GN-24-DG"
+            />
           </Field>
           <Field label="Name">
-            <input required className="input" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+            <input
+              required
+              className="input"
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            />
           </Field>
           <Field label="Category">
-            <select className="input" value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as Category }))}>
+            <select
+              className="input"
+              value={form.category}
+              onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as Category }))}
+            >
               <option value="Ganapati">Ganapati</option>
               <option value="Gauri">Gauri</option>
               <option value="Devi">Devi</option>
             </select>
           </Field>
           <Field label="Size">
-            <input className="input" value={form.size} onChange={(e) => setForm((f) => ({ ...f, size: e.target.value }))} placeholder="24 inch" />
+            <input
+              className="input"
+              value={form.size}
+              onChange={(e) => setForm((f) => ({ ...f, size: e.target.value }))}
+              placeholder="24 inch"
+            />
           </Field>
-          <Field label="Photo URL">
-            <input className="input" value={form.photo} onChange={(e) => setForm((f) => ({ ...f, photo: e.target.value }))} placeholder="https://…" />
+          <Field label="Photo">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/jpg"
+              className="input"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                setForm((f) => ({ ...f, photo: file || "" }));
+              }}
+            />
+            {form.photo instanceof File && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Selected: {form.photo.name}
+              </p>
+            )}
           </Field>
           <Field label="Purchase price">
-            <input type="number" min={0} className="input" value={form.purchasePrice || ""} onChange={(e) => setForm((f) => ({ ...f, purchasePrice: Number(e.target.value) || 0 }))} />
+            <input
+              type="number"
+              min={0}
+              className="input"
+              value={form.purchasePrice || ""}
+              onChange={(e) => setForm((f) => ({ ...f, purchasePrice: Number(e.target.value) || 0 }))}
+            />
           </Field>
           <Field label="Selling price">
-            <input type="number" min={0} className="input" value={form.sellingPrice || ""} onChange={(e) => setForm((f) => ({ ...f, sellingPrice: Number(e.target.value) || 0 }))} />
+            <input
+              type="number"
+              min={0}
+              className="input"
+              value={form.sellingPrice || ""}
+              onChange={(e) => setForm((f) => ({ ...f, sellingPrice: Number(e.target.value) || 0 }))}
+            />
           </Field>
           <Field label="Raw material cost">
-            <input type="number" min={0} className="input" value={form.rawMaterialCost || ""} onChange={(e) => setForm((f) => ({ ...f, rawMaterialCost: Number(e.target.value) || 0 }))} />
+            <input
+              type="number"
+              min={0}
+              className="input"
+              value={form.rawMaterialCost || ""}
+              onChange={(e) => setForm((f) => ({ ...f, rawMaterialCost: Number(e.target.value) || 0 }))}
+            />
           </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Available">
-              <input type="number" min={0} className="input" value={form.available || ""} onChange={(e) => setForm((f) => ({ ...f, available: Number(e.target.value) || 0 }))} />
-            </Field>
-            <Field label="Low stock at">
-              <input type="number" min={0} className="input" value={form.lowStockAt || ""} onChange={(e) => setForm((f) => ({ ...f, lowStockAt: Number(e.target.value) || 0 }))} />
-            </Field>
-          </div>
-          <div className="sm:col-span-3">
+          <Field label="Available">
+            <input
+              type="number"
+              min={0}
+              className="input"
+              value={form.available || ""}
+              onChange={(e) => setForm((f) => ({ ...f, available: Number(e.target.value) || 0 }))}
+            />
+          </Field>
+          <Field label="Low stock at">
+            <input
+              type="number"
+              min={0}
+              className="input"
+              value={form.lowStockAt || ""}
+              onChange={(e) => setForm((f) => ({ ...f, lowStockAt: Number(e.target.value) || 0 }))}
+            />
+          </Field>
+          <div className="flex items-end">
             <button
               type="submit"
               disabled={add.isPending}
@@ -370,7 +473,7 @@ function ModelsAdmin({ flash }: { flash: Flash }) {
           </div>
         </form>
       </Panel>
-
+      
       <Panel title="Existing models" subtitle="Stock and price edits save on blur.">
         <AsyncState isLoading={mq.isLoading} isError={mq.isError} error={mq.error} empty={rows.length === 0} emptyLabel="No models yet.">
           <div className="overflow-x-auto">
@@ -757,6 +860,321 @@ function BookingsAdmin({ flash }: { flash: Flash }) {
                   </td>
                 </tr>
               ))}
+            </tbody>
+          </table>
+        </div>
+      </AsyncState>
+    </Panel>
+  );
+}
+
+/* -------------------------------- Users -------------------------------- */
+
+function UsersAdmin({ flash }: { flash: Flash }) {
+  const queryClient = useQueryClient();
+  const uq = useQuery(usersQuery);
+  const users = uq.data ?? [];
+
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const emptyUser: UserInput = {
+    username: "",
+    password: "",
+    first_name: "",
+    last_name: "",
+    email: "",
+    role: "staff",
+    is_active: true,
+  };
+  const [newUser, setNewUser] = useState<UserInput>(emptyUser);
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["users"] });
+
+  const create = useMutation({
+    mutationFn: createUser,
+    onSuccess: () => {
+      invalidate();
+      setNewUser(emptyUser);
+      setShowForm(false);
+      flash("ok", "User created.");
+    },
+    onError: (e) => flash("err", errText(e, "Could not create user.")),
+  });
+
+  const update = useMutation({
+    mutationFn: updateUser,
+    onSuccess: () => {
+      invalidate();
+      setEditingId(null);
+      flash("ok", "User updated.");
+    },
+    onError: (e) => flash("err", errText(e, "Could not update user.")),
+  });
+
+  const remove = useMutation({
+    mutationFn: deleteUser,
+    onSuccess: () => {
+      invalidate();
+      flash("ok", "User deleted.");
+    },
+    onError: (e) => flash("err", errText(e, "Could not delete user.")),
+  });
+
+  const handleCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUser.username.trim() || !newUser.password) {
+      flash("err", "Username and password are required.");
+      return;
+    }
+    create.mutate(newUser);
+  };
+
+  const startEdit = (id: string) => setEditingId(id);
+  const cancelEdit = () => setEditingId(null);
+
+  const saveField = (id: string, field: keyof UserInput, value: any) => {
+    const user = users.find((u) => String(u.id) === id);
+    if (!user) return;
+    const current = user[field as keyof AuthUser];
+    if (String(current) === String(value)) return;
+    update.mutate({ id, [field]: value });
+  };
+
+  return (
+    <Panel title="User accounts" subtitle="Manage system users and their roles.">
+      {/* Create User Form */}
+      <div className="border-b border-border p-4 sm:p-6">
+        <button
+          type="button"
+          onClick={() => setShowForm(!showForm)}
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+        >
+          {showForm ? "Cancel" : "Add User"}
+        </button>
+        {showForm && (
+          <form onSubmit={handleCreate} className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <Field label="Username">
+              <input
+                required
+                className="input"
+                value={newUser.username}
+                onChange={(e) => setNewUser((f) => ({ ...f, username: e.target.value }))}
+              />
+            </Field>
+            <Field label="Password">
+              <input
+                required
+                type="password"
+                className="input"
+                value={newUser.password}
+                onChange={(e) => setNewUser((f) => ({ ...f, password: e.target.value }))}
+              />
+            </Field>
+            <Field label="Role">
+              <select
+                className="input"
+                value={newUser.role}
+                onChange={(e) => setNewUser((f) => ({ ...f, role: e.target.value as AuthUser["role"] }))}
+              >
+                <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
+                <option value="staff">Staff</option>
+                <option value="wholesaler">Wholesaler</option>
+                <option value="customer">Customer</option>
+              </select>
+            </Field>
+            <Field label="First Name">
+              <input
+                className="input"
+                value={newUser.first_name || ""}
+                onChange={(e) => setNewUser((f) => ({ ...f, first_name: e.target.value }))}
+              />
+            </Field>
+            <Field label="Last Name">
+              <input
+                className="input"
+                value={newUser.last_name || ""}
+                onChange={(e) => setNewUser((f) => ({ ...f, last_name: e.target.value }))}
+              />
+            </Field>
+            <Field label="Email">
+              <input
+                type="email"
+                className="input"
+                value={newUser.email || ""}
+                onChange={(e) => setNewUser((f) => ({ ...f, email: e.target.value }))}
+              />
+            </Field>
+            <div className="flex items-end">
+              <button
+                type="submit"
+                disabled={create.isPending}
+                className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
+              >
+                {create.isPending ? "Creating…" : "Create"}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+
+      {/* User List */}
+      <AsyncState
+        isLoading={uq.isLoading}
+        isError={uq.isError}
+        error={uq.error}
+        empty={users.length === 0}
+        emptyLabel="No users yet."
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-muted/40 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3 sm:px-6">Username</th>
+                <th className="px-4 py-3 sm:px-6">Full Name</th>
+                <th className="px-4 py-3 sm:px-6">Email</th>
+                <th className="px-4 py-3 sm:px-6">Role</th>
+                <th className="px-4 py-3 sm:px-6">Active</th>
+                <th className="px-4 py-3 sm:px-6 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border text-sm">
+              {users.map((u) => {
+                const id = String(u.id);
+                const isEditing = editingId === id;
+                return (
+                  <tr key={u.id} className="hover:bg-muted/30">
+                    <td className="px-4 py-3 sm:px-6">
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          defaultValue={u.username}
+                          onBlur={(e) => {
+                            const v = e.target.value.trim();
+                            if (v && v !== u.username) saveField(id, "username", v);
+                          }}
+                          className="input h-8 py-0 text-xs"
+                        />
+                      ) : (
+                        <span className="font-mono text-xs">{u.username}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 sm:px-6">
+                      {isEditing ? (
+                        <div className="flex gap-1">
+                          <input
+                            type="text"
+                            defaultValue={u.first_name || ""}
+                            onBlur={(e) => {
+                              const v = e.target.value;
+                              if (v !== u.first_name) saveField(id, "first_name", v);
+                            }}
+                            className="input h-8 py-0 text-xs w-20"
+                            placeholder="First"
+                          />
+                          <input
+                            type="text"
+                            defaultValue={u.last_name || ""}
+                            onBlur={(e) => {
+                              const v = e.target.value;
+                              if (v !== u.last_name) saveField(id, "last_name", v);
+                            }}
+                            className="input h-8 py-0 text-xs w-20"
+                            placeholder="Last"
+                          />
+                        </div>
+                      ) : (
+                        `${u.fullName} `.trim() || "—"
+                      )}
+                    </td>
+                    <td className="px-4 py-3 sm:px-6">
+                      {isEditing ? (
+                        <input
+                          type="email"
+                          defaultValue={u.email || ""}
+                          onBlur={(e) => {
+                            const v = e.target.value;
+                            if (v !== u.email) saveField(id, "email", v);
+                          }}
+                          className="input h-8 py-0 text-xs w-32"
+                        />
+                      ) : (
+                        u.email || "—"
+                      )}
+                    </td>
+                    <td className="px-4 py-3 sm:px-6">
+                      {isEditing ? (
+                        <select
+                          className="input h-8 py-0 text-xs"
+                          defaultValue={u.role}
+                          onChange={(e) => {
+                            const v = e.target.value as AuthUser["role"];
+                            if (v !== u.role) {
+                              update.mutate({ id, role: v });
+                            }
+                          }}
+                        >
+                          <option value="admin">Admin</option>
+                          <option value="manager">Manager</option>
+                          <option value="staff">Staff</option>
+                          <option value="wholesaler">Wholesaler</option>
+                          <option value="customer">Customer</option>
+                        </select>
+                      ) : (
+                        <span className="capitalize">{u.role}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 sm:px-6">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newActive = !u.is_active;
+                          update.mutate({ id, is_active: newActive });
+                        }}
+                        className={`text-[11px] font-semibold ${
+                          u.is_active ? "text-emerald-600" : "text-rose-600"
+                        } hover:underline`}
+                      >
+                        {u.is_active ? "Active" : "Inactive"}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 text-right sm:px-6">
+                      <div className="flex items-center justify-end gap-2">
+                        {isEditing ? (
+                          <button
+                            onClick={cancelEdit}
+                            className="text-muted-foreground hover:text-foreground"
+                            title="Cancel editing"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => startEdit(id)}
+                            className="text-muted-foreground hover:text-primary"
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            if (confirm(`Delete user "${u.username}"?`)) {
+                              remove.mutate(id);
+                            }
+                          }}
+                          className="text-muted-foreground hover:text-rose-600"
+                          title="Delete"
+                          disabled={remove.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

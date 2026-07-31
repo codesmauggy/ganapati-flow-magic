@@ -1,15 +1,15 @@
-# Manish Kala Kendra ERP
+# Manish Kala Kendra
 
-> Manufacturing ERP for a Pune-based Ganapati and Gauri idol workshop — tracks stock, wholesale and retail orders, staff piece-rate salary, expenses and season reports.
+> Manufacturing ERP for a Karjat-based Ganapati and Gauri idol workshop — tracks stock, wholesale and retail orders, staff piece-rate salary, expenses and season reports.
 
-Manish Kala Kendra has been manufacturing Ganapati, Gauri and Devi idols in Pune since 1989. This ERP is the internal operations dashboard used during the season to manage inventory, bookings, collections and workshop staff.
+Manish Kala Kendra has been manufacturing Ganapati, Gauri and Devi idols in Karjat since 1989. This ERP is the internal operations dashboard used during the season to manage inventory, bookings, collections and workshop staff.
 
 ## Pages
 
 - [Dashboard](/): Live overview of stock, wholesale, retail, collections and net profit for the current season.
 - [Stock Inventory](/stock): Ganapati, Gauri and Devi models with photos, live stock, prices and low-stock alerts.
 - [Wholesale Orders](/wholesale): Wholesale customer orders, tempo loading, invoices and collection tracking.
-- [Retail Counter](/retail): Quick retail bookings, advance payments and collector-assigned invoices.
+- [Retail Orders](/retail): Quick retail bookings, advance payments and collector-assigned invoices.
 - [Customers](/customers): Customer master with contact, address, retail/wholesale tag, birthday, referrer, ledger and payment history.
 - [Admin Console](/admin): Master data entry and modification for customers, models, staff, expenses and booking status.
 - [Staff & Salary](/staff): Workshop staff, attendance, piece-rate production and salary ledger.

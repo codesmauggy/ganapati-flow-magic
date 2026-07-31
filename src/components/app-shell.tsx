@@ -19,18 +19,7 @@ import {
 } from "lucide-react";
 import { modelsQuery } from "@/lib/api/queries";
 import { useAuth } from "@/lib/auth";
-
-const nav = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/stock", label: "Stock Inventory", icon: Package },
-  { to: "/wholesale", label: "Wholesale Orders", icon: Truck },
-  { to: "/retail", label: "Retail Counter", icon: ShoppingBag },
-  { to: "/customers", label: "Customers", icon: Contact },
-  { to: "/staff", label: "Staff & Salary", icon: Users },
-  { to: "/expenses", label: "Expenses", icon: Receipt },
-  { to: "/reports", label: "Reports", icon: BarChart3 },
-  { to: "/admin", label: "Admin Console", icon: ShieldCheck },
-] as const;
+import LoadingGif from "@/assets/LoadingScreen.gif";
 
 export function AppShell({
   title,
@@ -69,9 +58,31 @@ export function AppShell({
     }
   }, [open]);
 
-  // Live low-stock count for the sidebar alert (falls back to 0 while loading)
+  // Live low-stock count for the sidebar alert
   const { data: models } = useQuery({ ...modelsQuery, enabled: !!user });
   const lowCount = (models ?? []).filter((m) => m.available < m.lowStockAt).length;
+
+  // ---------- DYNAMIC NAV ----------
+  // Compute whether the user is an admin (adjust the role property as needed)
+  const isAdmin = user?.role === "admin";
+
+  // Build the navigation array inside the component so it can access isAdmin
+  const nav = [
+    { to: "/", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/stock", label: "Stock Inventory", icon: Package },
+    { to: "/wholesale", label: "Wholesale Orders", icon: Truck },
+    { to: "/retail", label: "Retail Orders", icon: ShoppingBag },
+    { to: "/customers", label: "Customers", icon: Contact },
+    { to: "/staff", label: "Staff & Salary", icon: Users },
+    { to: "/expenses", label: "Expenses", icon: Receipt },
+    { to: "/reports", label: "Reports", icon: BarChart3 },
+    // Conditional entry: admin gets Admin Console, others get My Profile
+    {
+      to: isAdmin ? "/admin" : "/profile",
+      label: isAdmin ? "Admin Console" : "My Profile",
+      icon: ShieldCheck,
+    },
+  ] as const;
 
   if (loading || !user) {
     return (
@@ -82,12 +93,13 @@ export function AppShell({
   }
 
   const initials = (user.fullName || user.username)
-    .split(" ")
-    .map((s) => s[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  .split(" ")
+  .map((s) => s[0])
+  .slice(0, 2)
+  .join("")
+  .toUpperCase();
 
+  // ---------- SIDEBAR (no changes, just uses the local `nav`) ----------
   const sidebar = (
     <>
       <div className="flex items-center justify-between border-b border-border p-4 sm:p-6">
@@ -96,7 +108,7 @@ export function AppShell({
             Manish Kala Kendra
           </div>
           <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-primary">
-            Manufacturing ERP · Since 1989
+            · Since 1989 ·
           </p>
         </div>
         <button
@@ -165,6 +177,7 @@ export function AppShell({
     </>
   );
 
+  // ---------- MAIN LAYOUT (unchanged) ----------
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-surface lg:flex">
@@ -208,21 +221,13 @@ export function AppShell({
                 </p>
               ) : null}
             </div>
-            <div className="relative hidden xl:block">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search customers, models, bookings..."
-                className="h-9 w-80 rounded-lg border border-border bg-muted/50 pl-9 pr-3 text-sm outline-none transition-colors focus:border-primary/40 focus:bg-surface"
-              />
-            </div>
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-4">
             {actions}
             <div className="hidden text-right md:block">
               <p className="text-xs font-bold">{user.fullName || user.username}</p>
               <p className="text-[10px] text-muted-foreground capitalize">
-                {user.role} · Collector on duty
+                {user.role} · on duty
               </p>
             </div>
             <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15 text-xs font-bold text-primary">
@@ -238,6 +243,8 @@ export function AppShell({
     </div>
   );
 }
+
+// ... the rest (CategoryChip, TagChip, StatusPill, AsyncState) remain unchanged
 
 export function CategoryChip({ category }: { category: "Ganapati" | "Gauri" | "Devi" }) {
   const map = {
@@ -303,10 +310,23 @@ export function AsyncState({
   empty?: boolean;
   emptyLabel?: string;
   children: ReactNode;
+  minDisplayMs?: number;
 }) {
+
   if (isLoading) {
-    return <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>;
+    return (
+      <div className="p-8 text-center">
+        <img
+          src={LoadingGif}
+          alt="Loading..."
+          className="mx-auto h-12 w-12 object-contain" // adjust size as needed
+        />
+      </div>
+    );
   }
+  // if (isLoading) {
+  //   return <div className="p-8 text-center text-sm text-muted-foreground">Loading Details</div>;
+  // }
   if (isError) {
     const msg = error instanceof Error ? error.message : "Something went wrong.";
     return (
@@ -326,4 +346,62 @@ export function AsyncState({
     );
   }
   return <>{children}</>;
+}
+
+
+interface ConfirmDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  isDestructive?: boolean;
+}
+
+export function ConfirmDialog({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmLabel = "Delete",
+  cancelLabel = "Cancel",
+  isDestructive = true,
+}: ConfirmDialogProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-xl border border-border bg-surface p-6 shadow-xl">
+        <div className="flex items-center justify-between">
+          <h3 className="font-display text-lg">{title}</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <p className="mt-2 text-sm text-muted-foreground">{message}</p>
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted"
+          >
+            {cancelLabel}
+          </button>
+          <button
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold text-white ${
+              isDestructive ? "bg-rose-600 hover:bg-rose-700" : "bg-primary hover:opacity-90"
+            }`}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

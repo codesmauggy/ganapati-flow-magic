@@ -3,16 +3,17 @@ import { useQuery } from "@tanstack/react-query";
 import { AppShell, AsyncState } from "@/components/app-shell";
 import { expensesQuery } from "@/lib/api/queries";
 import { formatCurrency } from "@/lib/types";
+import { Plus } from "lucide-react";
 
 export const Route = createFileRoute("/expenses")({
   head: () => ({
     meta: [
-      { title: "Expenses · Manish Kala Kendra ERP" },
+      { title: "Expenses · Manish Kala Kendra" },
       {
         name: "description",
         content: "Track colour, raw material and other workshop expenses by month, category and person.",
       },
-      { property: "og:title", content: "Expenses · Manish Kala Kendra ERP" },
+      { property: "og:title", content: "Expenses · Manish Kala Kendra" },
       { property: "og:description", content: "Track colour, raw material and other workshop expenses by month, category and person." },
     ],
   }),
@@ -29,7 +30,15 @@ function ExpensesPage() {
   }, {});
 
   return (
-    <AppShell title="Expenses" subtitle="Monthly workshop expenses by category">
+    <AppShell title="Expenses" 
+    subtitle="Monthly workshop expenses by category"
+    actions={
+      <button className="hidden items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 md:inline-flex">
+        <Plus className="h-4 w-4" />
+        New Expense
+      </button>
+    }
+    >
       <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
         <Tile label="Month Total" value={formatCurrency(total)} accent />
         {Object.entries(byCategory).slice(0, 3).map(([k, v]) => (

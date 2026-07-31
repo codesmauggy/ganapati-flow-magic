@@ -8,12 +8,12 @@ import { formatCurrency } from "@/lib/types";
 export const Route = createFileRoute("/wholesale")({
   head: () => ({
     meta: [
-      { title: "Wholesale Orders · Manish Kala Kendra ERP" },
+      { title: "Wholesale Orders · Manish Kala Kendra" },
       {
         name: "description",
         content: "Wholesale customer master, tempo loading, invoices, ledger and collection tracking.",
       },
-      { property: "og:title", content: "Wholesale Orders · Manish Kala Kendra ERP" },
+      { property: "og:title", content: "Wholesale Orders · Manish Kala Kendra" },
       { property: "og:description", content: "Wholesale customer master, tempo loading, invoices, ledger and collection tracking." },
     ],
   }),
@@ -48,7 +48,7 @@ function WholesalePage() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-tile)] lg:col-span-2">
           <div className="border-b border-border px-6 py-4">
-            <h3 className="font-display text-lg">Open Orders</h3>
+            <h3 className="font-display text-lg">Recent Wholesale Orders</h3>
           </div>
           <AsyncState
             isLoading={bq.isLoading}

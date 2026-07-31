@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ExpensesRouteImport } from './routes/expenses'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as RetailRouteImport } from './routes/retail'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -41,6 +42,11 @@ const ExpensesRoute = ExpensesRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsRoute = ReportsRouteImport.update({
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/expenses': typeof ExpensesRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
   '/reports': typeof ReportsRoute
   '/retail': typeof RetailRoute
   '/settings': typeof SettingsRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/expenses': typeof ExpensesRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
   '/reports': typeof ReportsRoute
   '/retail': typeof RetailRoute
   '/settings': typeof SettingsRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/expenses': typeof ExpensesRoute
   '/login': typeof LoginRoute
+  '/profile': typeof ProfileRoute
   '/reports': typeof ReportsRoute
   '/retail': typeof RetailRoute
   '/settings': typeof SettingsRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/expenses'
     | '/login'
+    | '/profile'
     | '/reports'
     | '/retail'
     | '/settings'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/expenses'
     | '/login'
+    | '/profile'
     | '/reports'
     | '/retail'
     | '/settings'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/expenses'
     | '/login'
+    | '/profile'
     | '/reports'
     | '/retail'
     | '/settings'
@@ -188,6 +200,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   ExpensesRoute: typeof ExpensesRoute
   LoginRoute: typeof LoginRoute
+  ProfileRoute: typeof ProfileRoute
   ReportsRoute: typeof ReportsRoute
   RetailRoute: typeof RetailRoute
   SettingsRoute: typeof SettingsRoute
@@ -227,6 +240,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports': {
@@ -300,6 +320,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   ExpensesRoute: ExpensesRoute,
   LoginRoute: LoginRoute,
+  ProfileRoute: ProfileRoute,
   ReportsRoute: ReportsRoute,
   RetailRoute: RetailRoute,
   SettingsRoute: SettingsRoute,
