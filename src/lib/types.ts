@@ -1,5 +1,4 @@
-// Shared domain types. These mirror the Django REST serializer shapes
-// described in BACKEND_API.md. All monetary values are integers (rupees).
+// Shared domain types. All monetary values are integers (rupees).
 
 export type Category = "Ganapati" | "Gauri" | "Devi";
 
@@ -9,7 +8,7 @@ export interface Model {
   name: string;
   category: Category;
   size: string;
-  photo: string; // absolute URL served by Django /media/ or a CDN
+  photo: string;
   purchasePrice: number;
   sellingPrice: number;
   rawMaterialCost: number;
@@ -31,19 +30,23 @@ export type Channel = "Wholesale" | "Retail";
 
 export interface Booking {
   id: string;
-  customer: string;
-  village: string;
+  bookingId: string;          // e.g. "BK-0001"
+  customer: string;           // customer ID
+  customerName: string;       // full name
   mobile: string;
-  modelSku: string;
+  village: string;
+  model: string;              // model ID (retail only)
   modelName: string;
   qty: number;
   amount: number;
   advance: number;
   status: BookingStatus;
   channel: Channel;
-  collector: string;
-   collector_fullName?: string;
-  date: string; // ISO date
+  collector: string;          // user ID
+  collectorFullName?: string; // full name (camelCase from backend)
+  date: string;
+  pickupDate?: string;
+  notes?: string;
 }
 
 export type Attendance = "Present" | "Half Day" | "Absent" | "Late";
@@ -94,13 +97,13 @@ export interface DashboardKpis {
 }
 
 export interface AuthUser {
-  id: number
-  username: string
-  first_name: string
-  last_name: string
-  fullName: string
-  email: string
-  role: 'admin' | 'manager' | 'staff' | 'wholesaler' | 'customer' // etc.
+  id: number;
+  username: string;
+  first_name: string;
+  last_name: string;
+  fullName: string;
+  email: string;
+  role: 'admin' | 'manager' | 'staff' | 'wholesaler' | 'customer';
   is_active?: boolean;
 }
 
@@ -117,32 +120,28 @@ export const formatCurrency = (n: number) =>
       ? `₹ ${n.toLocaleString("en-IN")}`
       : `₹ ${n}`;
 
-// ---------------------------------------------------------------------------
-// Customers (CRM) — master record + full transaction / payment history
-// ---------------------------------------------------------------------------
-
+// Customers (CRM)
 export type CustomerTag = "Retail" | "Wholesale";
 
 export interface Customer {
   id: string;
   name: string;
-  contact: string; // primary mobile
+  contact: string;
   altContact?: string;
   address: string;
   village?: string;
   city?: string;
   tag: CustomerTag;
-  dob?: string; // ISO date
+  dob?: string;
   gstin?: string;
-  refBy: string; // full name of the user who registered the customer
-  refById?: string; // user id (server-derived from request.user)
+  refBy: string;
+  refById?: string;
   notes?: string;
   isActive: boolean;
-  createdAt: string; // ISO datetime
-  // Server-computed history aggregates
+  createdAt: string;
   totalBilled: number;
   totalPaid: number;
-  balance: number; // totalBilled - totalPaid
+  balance: number;
   bookingsCount: number;
   lastTransactionDate?: string;
 }
@@ -152,13 +151,13 @@ export type LedgerEntryType = "Booking" | "Payment" | "Adjustment" | "Return";
 export interface CustomerTransaction {
   id: string;
   customerId: string;
-  date: string; // ISO date
+  date: string;
   type: LedgerEntryType;
-  reference?: string; // booking id / receipt no
+  reference?: string;
   description: string;
-  debit: number; // billed to customer
-  credit: number; // received from customer
-  balance: number; // running balance after this entry
+  debit: number;
+  credit: number;
+  balance: number;
   recordedBy: string;
 }
 
@@ -170,7 +169,7 @@ export interface CustomerPayment {
   date: string;
   amount: number;
   mode: PaymentMode;
-  reference?: string; // UTR / cheque no
+  reference?: string;
   bookingId?: string;
   receivedBy: string;
   note?: string;

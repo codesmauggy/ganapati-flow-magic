@@ -123,7 +123,7 @@ function Dashboard() {
                         <p className="text-[10px] text-muted-foreground">{b.channel}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="font-semibold">{b.customer}</p>
+                        <p className="font-semibold">{b.customerName}</p>
                         <p className="text-[10px] text-muted-foreground">{b.village}</p>
                       </td>
                       <td className="px-6 py-4">

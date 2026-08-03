@@ -37,10 +37,10 @@ function ReportsPage() {
   }, {});
   const collectors = bookings.reduce<Record<string, { collected: number; pending: number }>>(
     (acc, b) => {
-      const c = acc[b.collector_fullName || b.collector] ?? { collected: 0, pending: 0 };
+      const c = acc[b.collectorFullName || b.collector] ?? { collected: 0, pending: 0 };
       c.collected += b.advance;
       c.pending += b.amount - b.advance;
-      acc[b.collector_fullName || b.collector] = c;
+      acc[b.collectorFullName || b.collector] = c;
       return acc;
     },
     {},
@@ -72,12 +72,12 @@ function ReportsPage() {
           </Card>
 
           <Card title="Collectors">
-            {Object.entries(collectors).map(([name, v]) => (
+            {Object.entries(collectors).map(([collectorFullName, v]) => (
               <div
-                key={name}
+                key={collectorFullName}
                 className="flex items-center justify-between border-b border-border py-3 last:border-0"
               >
-                <p className="text-sm font-semibold">{name}</p>
+                <p className="text-sm font-semibold">{collectorFullName}</p>
                 <div className="text-right text-xs">
                   <p className="text-emerald-700">Collected {formatCurrency(v.collected)}</p>
                   <p className="text-secondary">Pending {formatCurrency(v.pending)}</p>

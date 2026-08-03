@@ -1,5 +1,9 @@
+// src/routes/settings.tsx
+
 import { createFileRoute } from "@tanstack/react-router";
-import { AppShell } from "@/components/app-shell";
+import { AppShell, AsyncState } from "@/components/app-shell";
+import { useQuery } from "@tanstack/react-query";
+import { settingsQuery } from "@/lib/api/queries";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -14,44 +18,37 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
+  const { data, isLoading, isError, error } = useQuery(settingsQuery);
+
   return (
     <AppShell title="Settings" subtitle="Company, users and master data">
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card
-          title="Company"
-          rows={[
-            ["Name", "Manish Kala Kendra"],
-            ["Since", "1989"],
-            ["Address", "Karjat, Maharashtra"],
-            ["GST", "27ABCDE1234F1Z5"],
-          ]}
-        />
-        <Card
-          title="Collectors"
-          rows={[
-            ["Manish", "Administrator"],
-            ["Rupesh", "Wholesale"],
-            ["Eknath", "Retail"],
-          ]}
-        />
-        <Card
-          title="Categories"
-          rows={[
-            ["Ganapati", "Primary"],
-            ["Gauri", "Seasonal"],
-            ["Devi", "Year-round"],
-          ]}
-        />
-        <Card
-          title="Payment Modes"
-          rows={[
-            ["Cash", "Enabled"],
-            ["UPI", "Enabled"],
-            ["Bank Transfer", "Enabled"],
-            ["Cheque", "Enabled"],
-          ]}
-        />
-      </div>
+      <AsyncState isLoading={isLoading} isError={isError} error={error}>
+        {data && (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <Card
+              title="Company"
+              rows={[
+                ["Name", data.company.name],
+                ["Since", data.company.since],
+                ["Address", data.company.address],
+                ["GST", data.company.gst],
+              ]}
+            />
+            <Card
+              title="Collectors"
+              rows={data.collectors.map((c: any) => [c.name, c.role])}
+            />
+            <Card
+              title="Categories"
+              rows={data.categories.map((c: any) => [c.name, c.type])}
+            />
+            <Card
+              title="Payment Modes"
+              rows={data.paymentModes.map((p: any) => [p.name, p.enabled ? "Enabled" : "Disabled"])}
+            />
+          </div>
+        )}
+      </AsyncState>
     </AppShell>
   );
 }

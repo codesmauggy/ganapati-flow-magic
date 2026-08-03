@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   LogOut,
+  ClipboardList,
 } from "lucide-react";
 import { modelsQuery } from "@/lib/api/queries";
 import { useAuth } from "@/lib/auth";
@@ -70,8 +71,9 @@ export function AppShell({
   const nav = [
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
     { to: "/stock", label: "Stock Inventory", icon: Package },
-    { to: "/wholesale", label: "Wholesale Orders", icon: Truck },
-    { to: "/retail", label: "Retail Orders", icon: ShoppingBag },
+    { to: "/orders", label: "Orders", icon: ClipboardList },
+    // { to: "/wholesale", label: "Wholesale Orders", icon: Truck },
+    // { to: "/retail", label: "Retail Orders", icon: ShoppingBag },
     { to: "/customers", label: "Customers", icon: Contact },
     { to: "/staff", label: "Staff & Salary", icon: Users },
     { to: "/expenses", label: "Expenses", icon: Receipt },
